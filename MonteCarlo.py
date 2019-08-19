@@ -12,29 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 import hngoption as hng
-
-def HNG_MC(alpha,beta,gamma,omega,lam,S_0,K,rate,T,PutCall,num_path = 1000000,risk_neutral = True):
-    sigma2 =  omega/(1-alpha*gamma**2-beta)
-    r = np.exp(rate*dt)-1                             
-    lnS = np.zeros((num_path,T+1))
-    h = np.zeros((num_path,T+1))
-    lnS[:,0] = np.log(S_0)*np.ones((num_path))
-    h[:,0] = sigma2*np.ones((num_path)) #initial wert
-    z = np.random.normal(size=(num_path,T+1))
-    gamma_star = gamma+lam+0.5
-    for t in np.arange(dt,T+dt,dt):
-        if risk_neutral:
-            h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma_star*np.sqrt(h[:,t-dt]))**2
-            lnS[:,t] = lnS[:,t-dt]+r-0.5*h[:,t]+np.sqrt(h[:,t])*z[:,t]
-        else:
-            h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma*np.sqrt(h[:,t-dt]))**2
-            lnS[:,t] = lnS[:,t-dt]+r+lam*h[:,t]+np.sqrt(h[:,t])*z[:,t]
-    S_T = np.exp(lnS[:,-1])
-    if PutCall:
-        return np.exp(-rate*T)*np.mean(np.maximum(S_T-K,0))
-    else:
-        return np.exp(-rate*T)*np.mean(np.maximum(K-S_T,0))    
-    
+from help_fun import *  
+"""    
 dt = 1
 num_path = 10000
 sz_alpha = [0.001,0.002]
@@ -47,7 +26,8 @@ sz_S0  = [1,1.2]
 sz_rate = [0,0.01]
 sz_moneyness =  np.arange(0.9,1.15,0.05)
 param_option_dict ={}
-#model parameters    
+#model parameters 
+"""   
 # =============================================================================
 #     
 # for alpha in sz_alpha:
@@ -64,30 +44,26 @@ param_option_dict ={}
 #                                     param_option_dict[(alpha,beta,gamma,omega,lam,T,S_0,rate,"p")] =  np.mean(np.maximum(K-S_T[:,np.newaxis],np.zeros((S_T.shape[0],K.shape[0]))),axis=0)
 #                      
 # =============================================================================
-                        
 
-                          
-
-alpha = 0.01
+dt = 1                                          #Zeitschritt                        
+alpha = 0.01    
 beta = 0.2
-gamma = 0.2
-omega = 0.1
-d_lambda = -0.5
+gamma = 0.2                                     #real world
+gamma_star = gamma+d_lambda+0.5                 #risk-free  
+omega = 0.1                                     #intercept
+d_lambda = 1.4                                  #real world
+d_lambda_star = -0.5                            #risk-free        
 PutCall = 1
 S=30
 r=0.03/252
 K=17
 T = 20
-PutCall = 1
-sigma2 = omega/(1-alpha*gamma**2-beta)
-V = omega + beta*sigma2+alpha*(-r-d_lambda*sigma2-gamma*sigma2)**2/sigma2
-g_star = gamma+d_lambda+0.5
+sigma2 = omega/(1-alpha*gamma**2-beta)          #unconditional variance VGARCH
+V = sigma2
 
-price_rn = hng.HNC(alpha, beta, g_star, omega, -0.5, V, S, K, r, T, PutCall) #V mit adjustment
-price_rn= hng.HNC(alpha, beta, g_star, omega, -0.5, sigma2, S, K, r, T, PutCall) #V= inital sigma2
-price_MC_rn = HNG_MC(alpha,beta,gamma,omega,d_lambda,S,K,r,T,PutCall)
+price_rn= hng.HNC(alpha, beta, gamma_star, omega, d_lambda_star, V, S, K, r, T, PutCall) #V= inital sigma2
+price_MC_rn = HNG_MC(alpha,beta,gamma,omega,d_lambda,S,K,r,T,dt,PutCall)
 print(price_rn,price_MC_rn)
 print((price_rn-price_MC_rn)/price_rn*100)
 #price_p = hng.HNC(alpha, beta, gamma, omega, d_lambda, V, S, K, r, T, PutCall)
-#price_idea = hng.HNC(alpha, beta, g_star, omega, -0.5, sigma2, S, K, r, T, PutCall)
 #price_MC_p = HNG_MC(alpha,beta,gamma,omega,d_lambda,S,K,r,T,PutCall,risk_neutral =False)
