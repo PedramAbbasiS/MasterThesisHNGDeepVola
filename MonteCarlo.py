@@ -48,11 +48,11 @@ param_option_dict ={}
 dt = 1                                          #Zeitschritt                        
 alpha = 0.01    
 beta = 0.2
+d_lambda = 1.4                                  #real world
+d_lambda_star = -0.5                            #risk-free 
 gamma = 0.2                                     #real world
 gamma_star = gamma+d_lambda+0.5                 #risk-free  
-omega = 0.1                                     #intercept
-d_lambda = 1.4                                  #real world
-d_lambda_star = -0.5                            #risk-free        
+omega = 0.1                                     #intercept       
 PutCall = 1
 S=30
 r=0.03/252
@@ -67,3 +67,4 @@ print(price_rn,price_MC_rn)
 print((price_rn-price_MC_rn)/price_rn*100)
 #price_p = hng.HNC(alpha, beta, gamma, omega, d_lambda, V, S, K, r, T, PutCall)
 #price_MC_p = HNG_MC(alpha,beta,gamma,omega,d_lambda,S,K,r,T,PutCall,risk_neutral =False)
+
