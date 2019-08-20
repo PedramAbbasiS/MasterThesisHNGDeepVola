@@ -1,6 +1,6 @@
 clear all;
 % all puts and calls
-year_files = {'/Users/Lukas/Documents/GitHub/SeminarOptions/Data/Datasets/SP500/Calls2014.mat'};
+year_files = {'/Users/Lukas/Documents/GitHub/SeminarOptions/Data/Datasets/SP500/Puts2014.mat'};
 
 %, '../Datasets/SP500/CallsPuts2008.mat',...
 %     '../Datasets/SP500/CallsPuts2009.mat', '../Datasets/SP500/CallsPuts2010.mat',...
