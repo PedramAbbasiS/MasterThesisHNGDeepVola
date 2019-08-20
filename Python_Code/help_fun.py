@@ -19,7 +19,7 @@ def HNG_MC(alpha, beta, gamma, omega, lam, S_0, K, rate, T, dt, PutCall = 2, num
         risk_neutral: Baysian, type of simulation
         Variance_specs: Type of inital variance or inital variance input
     
-    (C) Henrik Brautmeier, Lukas Wuertenberger 2019
+    (C) Henrik Brautmeier, Lukas Wuertenberger 2019, University of Konstanz
     """
     
     gamma_star = gamma+lam+0.5
