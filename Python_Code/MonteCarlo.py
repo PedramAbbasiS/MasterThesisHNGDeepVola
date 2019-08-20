@@ -62,7 +62,9 @@ sigma2 = (omega+alpha)/(1-alpha*gamma**2-beta)          #unconditional variance 
 V = sigma2
 
 price_rn= hng.HNC(alpha, beta, gamma_star, omega, d_lambda_star, V, S, K, r, T, PutCall) #V= inital sigma2
-price_MC_rn = HNG_MC(alpha,beta,gamma,omega,d_lambda,S,K,r,T,dt,PutCall+1)
+price_MC_rn = HNG_MC(alpha,beta,gamma,omega,d_lambda,S,K,r,T,dt,PutCall,Variance_specs = "unconditional",output="price")
+vola = HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, r, T, dt, PutCall , num_path = int(1e6), risk_neutral = True, Variance_specs = "unconditional",output="bsvola")
+  
 print(price_rn,price_MC_rn)
 print((price_rn-price_MC_rn)/price_rn*100)
 #price_p = hng.HNC(alpha, beta, gamma, omega, d_lambda, V, S, K, r, T, PutCall)
