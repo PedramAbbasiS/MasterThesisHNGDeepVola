@@ -17,18 +17,18 @@ from help_fun import HNG_MC
 #model parameters 
 # Szenario Analyse
 #=============================================================================
+dt =1
 sz_alpha = [0.01,0.02]
 sz_gamma = [0.2,0.3]
 sz_beta = [0.2,0.5]
 sz_lambda = [-0.5,1.3]
 sz_omega =[0.1,0.2]
 sz_maturity = [10,20]
-sz_S0  = [1,1.2]
-sz_rate = [0,0.05/252]
-param_option_dict ={}
-Moneyness = np.array([0.85,0.9,0.95,1,1.05,1.1,1.15])
-dt =1
-d_lambda_star = -0.5   
+sz_S0  = [1]
+sz_rate = [-0.02/252,-0.1/252,0,0.1/252,0.2/252,0.05/252]
+szenario_params_calls ={}
+Moneyness = np.array([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1])
+ 
 for alpha in sz_alpha:
     for beta in sz_beta:
         for gamma in sz_gamma:       
@@ -40,10 +40,9 @@ for alpha in sz_alpha:
                         for S_0 in sz_S0:
                             K = Moneyness*S_0
                             for rate in sz_rate:        
-                                p_call,p_put = HNG_MC(alpha,beta,gamma,omega,d_lambda,S_0,K,rate,T,dt,2)
-                                param_option_dict[(alpha,beta,gamma,omega,d_lambda,T,S_0,rate,"c")] =  p_call
-                                param_option_dict[(alpha,beta,gamma,omega,d_lambda,T,S_0,rate,"p")] =  p_put
-                      
+                                p_call = HNG_MC(alpha,beta,gamma,omega,d_lambda,S_0,K,rate,T,dt,PutCall = 1)
+                                szenario_params_calls[(alpha,beta,gamma,omega,d_lambda,T,S_0,rate)] =  p_call
+                                
 #=============================================================================
 
 dt = 1                                          #Zeitschritt                        
