@@ -9,9 +9,9 @@ from keras.layers import InputLayer
 from keras.layers import Dense
 from keras import backend as K
 #to do: load data
-Nstrikes = 4         #????
-Nmaturities = 5      #????
-Nparameters = 10
+Nstrikes = 20         #????
+Nmaturities = 10      #????
+Nparameters = 5
 Nsamples = 1000
 data = np.random.rand(Nsamples,Nparameters+Nstrikes*Nmaturities)
 xx = data[:,:Nparameters]
