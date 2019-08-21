@@ -28,23 +28,15 @@ sz_S0  = [1] #normalization
 #sz_rate = [-0.02/252,-0.1/252,0,0.1/252,0.2/252,0.05/252]
 szenario_vola_calls ={}
 szenario_data =[]
-Moneyness = np.array([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1])
-
-K = Moneyness
+K = np.array([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1])
 S = 1
 r = 0
 d_lambda = 0
 for alpha in sz_alpha:
     for beta in sz_beta:
-        for gamma_star in sz_gamma:       
-            #for d_lambda in sz_lambda:
-            #    gamma_star = gamma+d_lambda+0.5          _             
-            for omega in sz_omega:                         
-                #for T in sz_maturity: #eventuell unnötig langer pfad modellieren und kürzen?!                            
-                    #for S_0 in sz_S0:
-                    #    K = Moneyness*S_0
-                                        #for r in sz_rate:        
-                vola = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K, r, Maturity, dt, output=0)
+        for gamma_star in sz_gamma:              _             
+            for omega in sz_omega:                                
+                vola = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K, r, Maturity, dt, output=1)
                 #szenario_vola_calls[(alpha,beta,gamma_star,omega)] =  vola.reshape((1,vola.shape[0]*vola.shape[1]))
                 szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
 # #===========================================================================
