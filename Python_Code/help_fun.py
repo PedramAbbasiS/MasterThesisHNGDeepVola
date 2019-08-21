@@ -89,9 +89,107 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
                 return price,vola
 
 
+
+
+#import py_vollib.black_scholes.implied_volatility as vol!
+from calcbsimpvol import calcbsimpvol 
+def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e6), 
+           risk_neutral = True, Variance_specs = "unconditional",output=1):
+    """
+    This function calculates the Heston-Nandi-GARCH(1,1) option price of european calls/puts with MonteCarloSim
+    Requirements: numpy
+    Model Parameters (riskfree adjust will be done automatically): 
+        under P: alpha,beta,gamma,omega,d_lambda
+        under Q: alpha,beta,gamma_star,omega 
+    Underlying:
+        S starting value, K np.array of Strikes, dt Timeshift, T np.array of maturities in dt, r riskfree rate in dt
+    Function Parameters:
+        Putcall: option type (1=call,-1=put,2=both)
+        num_path: number of sim paths
+        risk_neutral: Baysian, type of simulation
+        Variance_specs: Type of inital variance or inital variance input
+        output: output spec, 0=bs imp vola,1=option price, 2=both
+        If implied vola is calculated you need to use dt=1
+    
+    (C) Henrik Brautmeier, Lukas Wuertenberger 2019, University of Konstanz
+    """
+  
+    # Variance Input =========================================================
+    if Variance_specs=="unconditional":
+        V = (omega+alpha)/(1-alpha*gamma**2-beta)
+    elif Variance_specs=="uncondtional forecast":
+        sigma2=(omega+alpha)/(1-alpha*gamma**2-beta)
+        V = omega+alpha-2*gamma*np.sqrt(sigma2)+(beta+gamma**2)*sigma2
+    elif any(type(Variance_specs)==s for s in [float,int,type(np.array([0])[0]),type(np.array([0.0])[0])]):
+        V = Variance_specs  #checks if Variance_specs is a float,int,numpy.int32 or numpy.float64
+    else:
+        print("Variance format not recognized. Uncondtional Variance will be used")
+        V = (omega+alpha)/(1-alpha*gamma**2-beta) 
+    
+    
+    # Simulation =============================================================
+    #Initialisation
+    T_max = np.max(T)
+    r = np.exp(rate*dt)-1                             
+    lnS = np.zeros((num_path,T_max+1))
+    h = np.zeros((num_path,T_max+1))
+    lnS[:,0] = np.log(S)*np.ones((num_path))
+    h[:,0] = V*np.ones((num_path)) #initial wert
+    z = np.random.normal(size=(num_path,T_max+1))
+
+    # Monte Carlo
+    for t in np.arange(dt,T_max+dt,dt):
+        if risk_neutral:
+            h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma*np.sqrt(h[:,t-dt]))**2
+            lnS[:,t] = lnS[:,t-dt]+r-0.5*h[:,t]+np.sqrt(h[:,t])*z[:,t]
+        else:
+            h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma*np.sqrt(h[:,t-dt]))**2
+            lnS[:,t] = lnS[:,t-dt]+r+d_lambda*h[:,t]+np.sqrt(h[:,t])*z[:,t]
+    matS = np.exp(lnS[:,T])
+    
+    
+    # Output =================================================================
+    # Prices
+    m = T.shape[0]
+    n = K.shape[0]
+    if PutCall!=2:
+        price = np.zeros((m,n))
+    else:
+        price_call = np.zeros((m,n))
+        price_put = np.zeros((m,n))
+        
+    for t in range(m):
+        S_t = matS[:,t]
+        if PutCall==1: # Call
+            price[t,:] = np.exp(-rate*T[t])*np.mean(np.maximum(S_t[:,np.newaxis] - K,np.zeros((S_t.shape[0],n))),axis=0)
+        elif PutCall==-1: # Put
+            price = np.exp(-rate*T[t])*np.mean(np.maximum(K-S_t[:,np.newaxis],np.zeros((S_t.shape[0],n))),axis=0)
+        elif PutCall==2: # (Call,Put)
+            price_call,price_put =  np.exp(-rate*T[t])*np.mean(np.maximum(S_t[:,np.newaxis] - K,np.zeros((S_t.shape[0],n))),axis=0),np.exp(-rate*T[t])*np.mean(np.maximum(K-S_t[:,np.newaxis],np.zeros((S_t.shape[0],n))),axis=0)
+            price = (price_call,price_put)
+        
+    # Implied Vola
+    if output==1:
+        return price
+    elif (output==0 or output==2):
+        T = T/252
+        K_tmp,tau = np.meshgrid(K.reshape((n,1)),T.reshape((m,1)))
+        if PutCall==1 or PutCall==-1:
+            vola = calcbsimpvol(dict(cp=np.asarray(PutCall), P=price, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            if output==0:
+                return vola
+            else:
+                return price,vola
+        elif PutCall==2:
+            vola_call = calcbsimpvol(dict(cp=np.asarray(1), P=price_call, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            vola_put = calcbsimpvol(dict(cp=np.asarray(-1), P=price_put, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            vola = (vola_call,vola_put)
+            if output==0:
+                return vola
+            else:
+                return price,vola
 """
 todo + fragen
-    simulatious maturity implemenatation         
     bs input were sind jährlich? unser input is täglich? lösung1: daily convertion *252 (implementiert)
     lösung2=yearly vola output convertieren? (nicht implementiert,geht das überhaupt?)
      
