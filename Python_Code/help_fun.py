@@ -91,8 +91,6 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
 
 
 
-#import py_vollib.black_scholes.implied_volatility as vol!
-from calcbsimpvol import calcbsimpvol 
 def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e6), 
            risk_neutral = True, Variance_specs = "unconditional",output=1):
     """
