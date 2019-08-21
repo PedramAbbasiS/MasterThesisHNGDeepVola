@@ -5,13 +5,14 @@ from scipy.optimize import minimize
 import hngoption as hng
 #import py_vollib.black_scholes.implied_volatility as vol!
 from calcbsimpvol import calcbsimpvol 
-def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 2, num_path = int(1e6), 
-           risk_neutral = True, Variance_specs = "unconditional",output="price"):
+def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e6), 
+           risk_neutral = True, Variance_specs = "unconditional",output="1"):
     """
     This function calculates the Heston-Nandi-GARCH(1,1) option price of european calls/puts with MonteCarloSim
     Requirements: numpy
     Model Parameters (riskfree adjust will be done automatically): 
-        alpha,beta,gamma,omega,d_lambda
+        under P: alpha,beta,gamma,omega,d_lambda
+        under Q: alpha,beta,gamma_star,d_lambda=0,omega
     Underlying:
         S starting value, K np.array of Strikes, dt Timeshift, T maturity in dt, r riskfree rate in dt
     Function Parameters:
@@ -19,18 +20,18 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 2, 
         num_path: number of sim paths
         risk_neutral: Baysian, type of simulation
         Variance_specs: Type of inital variance or inital variance input
+        output: output spec, 0=bs imp vola,1=option price, 2=both
     
     (C) Henrik Brautmeier, Lukas Wuertenberger 2019, University of Konstanz
     """
-    
-    gamma_star = gamma+d_lambda+0.5
+  
     
     # Variance Input =========================================================
     if Variance_specs=="unconditional":
         V = (omega+alpha)/(1-alpha*gamma**2-beta)
     elif Variance_specs=="uncondtional forecast":
-        sigma2=(omega+alpha)/(1-alpha*gamma_star**2-beta)
-        V = omega+alpha-2*gamma_star*np.sqrt(sigma2)+(beta+gamma_star**2)*sigma2
+        sigma2=(omega+alpha)/(1-alpha*gamma**2-beta)
+        V = omega+alpha-2*gamma*np.sqrt(sigma2)+(beta+gamma**2)*sigma2
     elif any(type(Variance_specs)==s for s in [float,int,type(np.array([0])[0]),type(np.array([0.0])[0])]):
         V = Variance_specs  #checks if Variance_specs is a float,int,numpy.int32 or numpy.float64
     else:
@@ -49,7 +50,7 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 2, 
     # Simulation
     for t in np.arange(dt,T+dt,dt):
         if risk_neutral:
-            h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma_star*np.sqrt(h[:,t-dt]))**2
+            h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma*np.sqrt(h[:,t-dt]))**2
             lnS[:,t] = lnS[:,t-dt]+r-0.5*h[:,t]+np.sqrt(h[:,t])*z[:,t]
         else:
             h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma*np.sqrt(h[:,t-dt]))**2
@@ -65,13 +66,16 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 2, 
         price_call,price_put =  np.exp(-rate*T)*np.mean(np.maximum(S_T[:,np.newaxis] - K,np.zeros((S_T.shape[0],K.shape[0]))),axis=0),np.exp(-rate*T)*np.mean(np.maximum(K-S_T[:,np.newaxis],np.zeros((S_T.shape[0],K.shape[0]))),axis=0)
         price = (price_call,price_put)
     
-    if output=="price":
+    if output==1:
         return price
-    elif output=="bsvola":
+    elif (output==0 or output==2):
         if PutCall!=2:
             K_tmp,tau = np.meshgrid(K.reshape((K.shape[0],1)),np.array(T/252))
-            return calcbsimpvol(dict(cp=np.asarray(PutCall), P=np.asarray(price.reshape((1,price.shape[0]))), S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
-    
+            vola = calcbsimpvol(dict(cp=np.asarray(PutCall), P=np.asarray(price.reshape((1,price.shape[0]))), S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            if output==0:
+                return vola
+            else:
+                return price,vola
 
 
 """
