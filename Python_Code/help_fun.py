@@ -12,11 +12,11 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
     Requirements: numpy
     Model Parameters (riskfree adjust will be done automatically): 
         under P: alpha,beta,gamma,omega,d_lambda
-        under Q: alpha,beta,gamma_star,d_lambda=0,omega
+        under Q: alpha,beta,gamma_star,omega 
     Underlying:
         S starting value, K np.array of Strikes, dt Timeshift, T maturity in dt, r riskfree rate in dt
     Function Parameters:
-        Putcall: option type (1=call,0=put,2=both)
+        Putcall: option type (1=call,-1=put,2=both)
         num_path: number of sim paths
         risk_neutral: Baysian, type of simulation
         Variance_specs: Type of inital variance or inital variance input
@@ -25,7 +25,6 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
     (C) Henrik Brautmeier, Lukas Wuertenberger 2019, University of Konstanz
     """
   
-    
     # Variance Input =========================================================
     if Variance_specs=="unconditional":
         V = (omega+alpha)/(1-alpha*gamma**2-beta)
@@ -37,9 +36,10 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
     else:
         print("Variance format not recognized. Uncondtional Variance will be used")
         V = (omega+alpha)/(1-alpha*gamma**2-beta) 
-    # ========================================================================
     
-    # Initialisation
+    
+    # Simulation =============================================================
+    #Initialisation
     r = np.exp(rate*dt)-1                             
     lnS = np.zeros((num_path,T+1))
     h = np.zeros((num_path,T+1))
@@ -47,7 +47,7 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
     h[:,0] = V*np.ones((num_path)) #initial wert
     z = np.random.normal(size=(num_path,T+1))
     
-    # Simulation
+    # Monte Carlo
     for t in np.arange(dt,T+dt,dt):
         if risk_neutral:
             h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma*np.sqrt(h[:,t-dt]))**2
@@ -57,21 +57,32 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
             lnS[:,t] = lnS[:,t-dt]+r+d_lambda*h[:,t]+np.sqrt(h[:,t])*z[:,t]
     S_T = np.exp(lnS[:,-1])
     
-    # Output
+    
+    # Output =================================================================
+    # Prices
     if PutCall==1: # Call
         price = np.exp(-rate*T)*np.mean(np.maximum(S_T[:,np.newaxis] - K,np.zeros((S_T.shape[0],K.shape[0]))),axis=0)
-    elif PutCall==0: # Put
+    elif PutCall==-1: # Put
         price = np.exp(-rate*T)*np.mean(np.maximum(K-S_T[:,np.newaxis],np.zeros((S_T.shape[0],K.shape[0]))),axis=0)
     elif PutCall==2: # (Call,Put)
         price_call,price_put =  np.exp(-rate*T)*np.mean(np.maximum(S_T[:,np.newaxis] - K,np.zeros((S_T.shape[0],K.shape[0]))),axis=0),np.exp(-rate*T)*np.mean(np.maximum(K-S_T[:,np.newaxis],np.zeros((S_T.shape[0],K.shape[0]))),axis=0)
         price = (price_call,price_put)
     
+    # Implied Vola
     if output==1:
         return price
     elif (output==0 or output==2):
-        if PutCall!=2:
-            K_tmp,tau = np.meshgrid(K.reshape((K.shape[0],1)),np.array(T/252))
+        K_tmp,tau = np.meshgrid(K.reshape((K.shape[0],1)),np.array(T/252))
+        if PutCall==1 or PutCall==-1:
             vola = calcbsimpvol(dict(cp=np.asarray(PutCall), P=np.asarray(price.reshape((1,price.shape[0]))), S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            if output==0:
+                return vola
+            else:
+                return price,vola
+        elif PutCall==2:
+            vola_call = calcbsimpvol(dict(cp=np.asarray(1), P=np.asarray(price_call.reshape((1,price_call.shape[0]))), S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            vola_put = calcbsimpvol(dict(cp=np.asarray(-1), P=np.asarray(price_put.reshape((1,price_put.shape[0]))), S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            vola = (vola_call,vola_put)
             if output==0:
                 return vola
             else:
@@ -81,7 +92,6 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
 """
 todo + fragen
     simulatious maturity implemenatation         
-    black scholes implied vola (teileweise implementiert
     bs input were sind jährlich? unser input is täglich? lösung1: daily convertion *252 (implementiert)
     lösung2=yearly vola output convertieren? (nicht implementiert,geht das überhaupt?)
      
