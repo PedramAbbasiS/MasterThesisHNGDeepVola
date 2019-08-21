@@ -31,7 +31,7 @@ l = 0
 d_lambda = 0
 vola_closed = np.zeros((len(Maturity),len(K)))
 
-for i in range(int(1e2)):
+for i in range(int(50e1)):
     print(i)
     alpha = 1
     beta = 1
@@ -51,12 +51,12 @@ for i in range(int(1e2)):
     for m in range(len(Maturity)):
         for k in range(len(K)):
             vola_closed[m,k] = hng.HNC(alpha, beta, gamma_star, omega, -.5, V, S, K[k], r, Maturity[m], PutCall=1)
-    MC_diff = np.mean(np.abs(vola - vola_closed))       
+    MC_diff = np.mean(np.abs((vola - vola_closed)/vola_closed))       
     szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega, 
                                                      beta+alpha*gamma_star**2, MC_diff]).reshape((1,6)), vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
                                
 #szenario_data_1 = np.asarray(szenario_data).reshape((int(4e4),40)) 
-szenario_data_2 = np.asarray(szenario_data).reshape((int(1e2),41))
+szenario_data_2 = np.asarray(szenario_data).reshape((int(50e1),41))
 mean_diff = np.mean(szenario_data_2[:,5])
 max_diff = np.max(szenario_data_2[:,5])
 #np.save('data', szenario_data_1)
