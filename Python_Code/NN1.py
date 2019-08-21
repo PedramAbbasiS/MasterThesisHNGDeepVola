@@ -15,7 +15,9 @@ import matplotlib.ticker as mtick
 #strikes=np.array([0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5 ])
 #maturities=np.array([0.1,0.3,0.6,0.9,1.2,1.5,1.8,2.0 ])
 data = np.load('data.npy')
-
+data = data[(data[:,4:]>1e-4).all(axis=1)]
+#data1 = data[(data!=0).all(axis=1)]
+#np.count_nonzero(data1)
 Nparameters = 4
 maturities = np.array([20, 30, 80, 180, 250])
 strikes = np.array([0.9, 0.95, 0.975, 1, 1.025, 1.05, 1.1])

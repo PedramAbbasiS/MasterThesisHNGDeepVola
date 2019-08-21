@@ -31,7 +31,8 @@ l = 0
 d_lambda = 0
 vola_closed = np.zeros((len(Maturity),len(K)))
 
-for i in range(int(50e1)):
+Nsim = int(1)
+for i in range(Nsim):
     print(i)
     alpha = 1
     beta = 1
@@ -56,7 +57,7 @@ for i in range(int(50e1)):
                                                      beta+alpha*gamma_star**2, MC_diff]).reshape((1,6)), vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
                                
 #szenario_data_1 = np.asarray(szenario_data).reshape((int(4e4),40)) 
-szenario_data_2 = np.asarray(szenario_data).reshape((int(50e1),41))
+szenario_data_2 = np.asarray(szenario_data).reshape((Nsim,41))
 mean_diff = np.mean(szenario_data_2[:,5])
 max_diff = np.max(szenario_data_2[:,5])
 #np.save('data', szenario_data_1)
