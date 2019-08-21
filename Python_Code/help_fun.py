@@ -205,8 +205,8 @@ def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall
             else:
                 return price,vola
         elif PutCall==2:
-            vola_call = calcbsimpvol(dict(cp=np.asarray(1), P=price_call, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
-            vola_put = calcbsimpvol(dict(cp=np.asarray(-1), P=price_put, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            vola_call = calcbsimpvol(dict(cp=np.asarray(1), P=price_call, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate/dt), q=np.asarray(0)))
+            vola_put = calcbsimpvol(dict(cp=np.asarray(-1), P=price_put, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate/dt), q=np.asarray(0)))
             vola = (vola_call,vola_put)
             if output==0:
                 return vola

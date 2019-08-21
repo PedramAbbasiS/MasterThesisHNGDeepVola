@@ -30,7 +30,7 @@ szenario_data =[]
 K = np.array([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1])
 
 r = 0 # yearl rate times dt example 5%*1/252
-value = 1
+value = 0
 # use form=1 for usual format form = 0 for matrices
 form = 0
 szenario_data,szenarios = data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,value,form)
