@@ -6,18 +6,29 @@ import hngoption as hng
 #import py_vollib.black_scholes.implied_volatility as vol!
 from calcbsimpvol import calcbsimpvol 
 
-def data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,value):
+def data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt=1,r=0,value=1,form=1):
     szenario_data =[]
+    if not(form):
+        szenarios = []
     for alpha in sz_alpha:
         for beta in sz_beta:
             for gamma_star in sz_gamma:       
                 for omega in sz_omega:                         
                     data = HNG_MC_simul(alpha, beta, gamma_star, omega, 0, 1, K, r, Maturity, dt, output=value)
-                    szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),data.reshape((1,data.shape[0]*data.shape[1]))),axis=1))   
+                    if form:
+                        szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),data.reshape((1,data.shape[0]*data.shape[1]))),axis=1))   
+                    else:
+                        szenario_data.append(data)
+                        szenarios.append([alpha,beta,gamma_star,omega])
+    
     szenario_data = np.asarray(szenario_data)
-    szenario_data = szenario_data.reshape(szenario_data.shape[0],szenario_data.shape[2])
-    return szenario_data
-
+    if form:
+        szenario_data = szenario_data.reshape(szenario_data.shape[0],szenario_data.shape[2])
+        return szenario_data
+    else:
+        szenarios = np.asarray(szenarios)
+        return szenario_data,szenarios
+    
 
 
 def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e4), 
@@ -115,7 +126,7 @@ def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall
         under P: alpha,beta,gamma,omega,d_lambda
         under Q: alpha,beta,gamma_star,omega 
     Underlying:
-        S starting value, K np.array of Strikes, dt Timeshift, T np.array of maturities in dt, r riskfree rate in dt
+        S starting value, K np.array of Strikes, dt Timeshift, T np.array of maturities in dt, r riskfree rate for dt
     Function Parameters:
         Putcall: option type (1=call,-1=put,2=both)
         num_path: number of sim paths
@@ -151,13 +162,13 @@ def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall
     z = np.random.normal(size=(num_path,T_max+1))
 
     # Monte Carlo
-    for t in np.arange(dt,T_max+dt,dt):
+    for t in np.arange(1,T_max+1,1):
         if risk_neutral:
-            h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma*np.sqrt(h[:,t-dt]))**2
-            lnS[:,t] = lnS[:,t-dt]+r-0.5*h[:,t]+np.sqrt(h[:,t])*z[:,t]
+            h[:,t] = omega+beta*h[:,t-1]+alpha*(z[:,t-1]-gamma*np.sqrt(h[:,t-1]))**2
+            lnS[:,t] = lnS[:,t-1]+r-0.5*h[:,t]+np.sqrt(h[:,t])*z[:,t]
         else:
-            h[:,t] = omega+beta*h[:,t-dt]+alpha*(z[:,t-dt]-gamma*np.sqrt(h[:,t-dt]))**2
-            lnS[:,t] = lnS[:,t-dt]+r+d_lambda*h[:,t]+np.sqrt(h[:,t])*z[:,t]
+            h[:,t] = omega+beta*h[:,t-1]+alpha*(z[:,t-1]-gamma*np.sqrt(h[:,t-1]))**2
+            lnS[:,t] = lnS[:,t-1]+r+d_lambda*h[:,t]+np.sqrt(h[:,t])*z[:,t]
     matS = np.exp(lnS[:,T])
     
     
@@ -185,10 +196,10 @@ def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall
     if output==1:
         return price
     elif (output==0 or output==2):
-        T = T/252
+        T = T*dt #normalisation to yearly basis
         K_tmp,tau = np.meshgrid(K.reshape((n,1)),T.reshape((m,1)))
         if PutCall==1 or PutCall==-1:
-            vola = calcbsimpvol(dict(cp=np.asarray(PutCall), P=price, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate*252), q=np.asarray(0)))
+            vola = calcbsimpvol(dict(cp=np.asarray(PutCall), P=price, S=np.asarray(S), K=K_tmp, tau=tau, r=np.asarray(rate/dt), q=np.asarray(0)))
             if output==0:
                 return vola
             else:
