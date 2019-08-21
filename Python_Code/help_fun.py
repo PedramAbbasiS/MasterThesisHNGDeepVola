@@ -5,6 +5,19 @@ from scipy.optimize import minimize
 import hngoption as hng
 #import py_vollib.black_scholes.implied_volatility as vol!
 from calcbsimpvol import calcbsimpvol 
+
+def data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,value):
+    szenario_data =[]
+    for alpha in sz_alpha:
+        for beta in sz_beta:
+            for gamma_star in sz_gamma:       
+                for omega in sz_omega:                         
+                    data = HNG_MC_simul(alpha, beta, gamma_star, omega, 0, 1, K, r, Maturity, dt, output=value)
+                    szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),data.reshape((1,data.shape[0]*data.shape[1]))),axis=1))   
+    return szenario_data
+
+
+
 def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e4), 
            risk_neutral = True, Variance_specs = "unconditional",output="1"):
     """

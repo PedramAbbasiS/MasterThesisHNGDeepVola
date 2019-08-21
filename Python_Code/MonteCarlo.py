@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 import hngoption as hng
-from help_fun import HNG_MC,HNG_MC_simul
+from help_fun import HNG_MC,HNG_MC_simul,data_generator
 
 #model parameters 
 # Szenario Analyse
@@ -29,19 +29,25 @@ Maturity = np.array([10,20,30,40,50,60])
 #szenario_vola_calls ={}
 szenario_data =[]
 K = np.array([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1])
-S = 1
+dt = 1
 r = 0
-d_lambda = 0
-for alpha in sz_alpha:
-    for beta in sz_beta:
-        for gamma_star in sz_gamma:       
-            for omega in sz_omega:                         
-                vola = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K, r, Maturity, dt, output=1)
-                #szenario_vola_calls[(alpha,beta,gamma_star,omega)] =  vola.reshape((1,vola.shape[0]*vola.shape[1]))
-                szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
+value = 1
+szenario_data = data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,value)
 
-# #===========================================================================
-#  
+# =============================================================================
+# S = 1
+# d_lambda = 0
+# for alpha in sz_alpha:
+#     for beta in sz_beta:
+#         for gamma_star in sz_gamma:       
+#             for omega in sz_omega:                         
+#                 vola = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K, r, Maturity, dt, output=1)
+#                 #szenario_vola_calls[(alpha,beta,gamma_star,omega)] =  vola.reshape((1,vola.shape[0]*vola.shape[1]))
+#                 szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
+# 
+# # #===========================================================================
+# #  
+# =============================================================================
 #  dt = 1                                          #Zeitschritt                        
 #  alpha = 0.01    
 #  beta = 0.2
