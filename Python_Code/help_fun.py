@@ -14,6 +14,8 @@ def data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,value):
                 for omega in sz_omega:                         
                     data = HNG_MC_simul(alpha, beta, gamma_star, omega, 0, 1, K, r, Maturity, dt, output=value)
                     szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),data.reshape((1,data.shape[0]*data.shape[1]))),axis=1))   
+    szenario_data = np.asarray(szenario_data)
+    szenario_data = szenario_data.reshape(szenario_data.shape[0],szenario_data.shape[2])
     return szenario_data
 
 
