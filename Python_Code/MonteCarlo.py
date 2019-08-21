@@ -46,8 +46,7 @@ for alpha in sz_alpha:
                                         #for r in sz_rate:        
                 vola = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K, r, Maturity, dt, output=0)
                 #szenario_vola_calls[(alpha,beta,gamma_star,omega)] =  vola.reshape((1,vola.shape[0]*vola.shape[1]))
-                szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))
-                break     
+                szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
 # #===========================================================================
 #  
 #  dt = 1                                          #Zeitschritt                        
