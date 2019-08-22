@@ -43,7 +43,7 @@ r = 0 # yearl rate times dt example 5%*1/252
 
 # use form=1 for usual format form = 0 for matrices
 form = 0
-szenario_data,szenarios = data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,1,form)
+szenario_data,szenarios = data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,1,form,typ="Model")
 szenario_data_vola, szenarios= data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,0,form)
 
 

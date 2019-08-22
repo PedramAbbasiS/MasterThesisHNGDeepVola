@@ -6,31 +6,42 @@ import hngoption as hng
 #import py_vollib.black_scholes.implied_volatility as vol!
 from calcbsimpvol import calcbsimpvol 
 
-def data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt=1,r=0,value=1,form=1):
+def data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt=1,r=0,value=1,form=1,typ="MC"):
     szenario_data =[]
     if not(form):
         szenarios = []
     for alpha in sz_alpha:
         for beta in sz_beta:
             for gamma_star in sz_gamma:       
-                for omega in sz_omega:                         
-                    data = HNG_MC_simul(alpha, beta, gamma_star, omega, 0, 1, K, r, Maturity, dt, output=value)
+                for omega in sz_omega:     
+                    if typ=="MC":                    
+                        data = HNG_MC_simul(alpha, beta, gamma_star, omega, 0, 1, K, r, Maturity, dt, output=value)
+                    elif typ=="Model":
+                        sigma2 = (omega+alpha)/(1-alpha*gamma_star**2-beta) 
+                        data = np.zeros((Maturity.shape[0],K.shape[0]))
+                        l = 0
+                        for k in K:
+                            s = 0
+                            for T in Maturity:
+                                data[s,l]= hng.HNC(alpha, beta, gamma_star, omega, -0.5, sigma2, 1, k, 0, T, 1)
+                                s+=1
+                            l+=1
                     if form:
-                        szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),data.reshape((1,data.shape[0]*data.shape[1]))),axis=1))   
+                        szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),data.flatten()),axis=1))   
                     else:
                         szenario_data.append(data)
                         szenarios.append([alpha,beta,gamma_star,omega])
     
     szenario_data = np.asarray(szenario_data)
     if form:
-        szenario_data = szenario_data.reshape(szenario_data.shape[0],szenario_data.shape[2])
+        szenario_data = szenario_data.reshape(szenario_data.shape[0],szenario_data.shape[-1])
         return szenario_data
     else:
         szenarios = np.asarray(szenarios)
         return szenario_data,szenarios
     
 
-def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e4), 
+def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e5), 
            risk_neutral = True, Variance_specs = "unconditional",output="1"):
     """
     This function calculates the Heston-Nandi-GARCH(1,1) option price of european calls/puts with MonteCarloSim
@@ -116,7 +127,7 @@ def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, 
 
 
 
-def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e4), 
+def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e5), 
            risk_neutral = True, Variance_specs = "unconditional",output=1):
     """
     This function calculates the Heston-Nandi-GARCH(1,1) option price of european calls/puts with MonteCarloSim
