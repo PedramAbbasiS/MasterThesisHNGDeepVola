@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Aug 19 08:41:27 2019
-
-@author: Henrik Brautmeier
 @author: Henrik Brautmeier, Lukas Wuertenberger
 
 Option Pricing in Maschine Learning
@@ -11,9 +8,6 @@ Option Pricing in Maschine Learning
 #import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
-import hngoption as hng
-from help_fun import HNG_MC,HNG_MC_simul
 #from scipy.optimize import minimize
 #import hngoption as hng
 from help_fun import HNG_MC_simul,data_generator
@@ -22,20 +16,15 @@ import keras
 #model parameters 
 # Szenario Analyse
 #=============================================================================
-dt =1
 sz_alpha = [0.01,0.02]
 sz_gamma = [0.2,0.3]
 sz_beta = [0.2,0.5]
-sz_lambda = [-0.5,1.3]
 #sz_lambda = [-0.5,1.3]
 sz_omega =[0.1,0.2]
-Maturity = np.array([10,20,30,40,50,60])
-sz_S0  = [1] #normalization
 dt = 1/252 # stepwidth in basis of 1year
 Maturity = np.array([10,20,30,40,50,60,100,252]) #Maturity always in timesteps of dt > integermatrix
 #sz_S0  = [1] #normalization
 #sz_rate = [-0.02/252,-0.1/252,0,0.1/252,0.2/252,0.05/252]
-szenario_vola_calls ={}
 #szenario_vola_calls ={}
 szenario_data =[]
 K = np.array([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1])

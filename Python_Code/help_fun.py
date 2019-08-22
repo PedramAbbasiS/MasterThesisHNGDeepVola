@@ -5,7 +5,6 @@ from scipy.optimize import minimize
 import hngoption as hng
 #import py_vollib.black_scholes.implied_volatility as vol!
 from calcbsimpvol import calcbsimpvol 
-<<<<<<< HEAD
 
 def data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt=1,r=0,value=1,form=1):
     szenario_data =[]
