@@ -30,7 +30,6 @@ def data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt=1,r=0,value=
         return szenario_data,szenarios
     
 
-
 def HNG_MC(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall = 1, num_path = int(1e4), 
            risk_neutral = True, Variance_specs = "unconditional",output="1"):
     """
@@ -171,7 +170,6 @@ def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall
             lnS[:,t] = lnS[:,t-1]+r+d_lambda*h[:,t]+np.sqrt(h[:,t])*z[:,t]
     matS = np.exp(lnS[:,T])
     
-    
     # Output =================================================================
     # Prices
     m = T.shape[0]
@@ -181,7 +179,7 @@ def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall
     else:
         price_call = np.zeros((m,n))
         price_put = np.zeros((m,n))
-        
+      
     for t in range(m):
         S_t = matS[:,t]
         if PutCall==1: # Call

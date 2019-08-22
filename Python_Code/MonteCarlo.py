@@ -30,6 +30,20 @@ Maturity = np.array([30,40,50,60,100,252]) #Maturity always in timesteps of dt >
 #szenario_vola_calls ={}
 szenario_data =[]
 K = np.array([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1])
+<<<<<<< HEAD
+S = 1
+r = 0
+d_lambda = 0
+for alpha in sz_alpha:
+    for beta in sz_beta:
+        for gamma_star in sz_gamma:              _             
+            for omega in sz_omega:                                
+                vola = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K, r, Maturity, dt, output=1)
+                #szenario_vola_calls[(alpha,beta,gamma_star,omega)] =  vola.reshape((1,vola.shape[0]*vola.shape[1]))
+                szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
+# #===========================================================================
+#  
+=======
 
 r = 0 # yearl rate times dt example 5%*1/252
 # use form=1 for usual format form = 0 for matrices
@@ -114,6 +128,7 @@ plt.show()
 # # #===========================================================================
 # #  
 # =============================================================================
+>>>>>>> b123f3a1a580e6307871809cfe13c1857edc4742
 #  dt = 1                                          #Zeitschritt                        
 #  alpha = 0.01    
 #  beta = 0.2
