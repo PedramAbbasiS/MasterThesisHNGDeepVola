@@ -66,11 +66,11 @@ for alpha in sz_alpha:
             for omega in sz_omega:     
                 
                 
-                start_time = time.time()
-                data = HNG_MC_simul(alpha, beta, gamma_star, omega, 0, 1, K, r, Maturity, dt, output=1,num_path=int(1e5))
-                print("--- %s seconds ---" % (time.time() - start_time))
-                szenario_data.append(data)
-                szenarios.append([alpha,beta,gamma_star,omega])
+                #start_time = time.time()
+                #data = HNG_MC_simul(alpha, beta, gamma_star, omega, 0, 1, K, r, Maturity, dt, output=1,num_path=int(1e5))
+                #print("--- %s seconds ---" % (time.time() - start_time))
+                #szenario_data.append(data)
+                #szenarios.append([alpha,beta,gamma_star,omega])
                 sigma2 = (omega+alpha)/(1-alpha*gamma_star**2-beta) 
                 price= np.zeros((6,9))
                 l = 0
