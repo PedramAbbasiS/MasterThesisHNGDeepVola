@@ -13,53 +13,58 @@ import matplotlib.pyplot as plt
 from help_fun import HNG_MC_simul,data_generator
 import keras
 
-#model parameters 
+
+
 # Szenario Analyse
-#=============================================================================
 sz_alpha = [0.01,0.02]
 sz_gamma = [0.2,0.3]
 sz_beta = [0.2,0.5]
 #sz_lambda = [-0.5,1.3]
 sz_omega =[0.1,0.2]
 dt = 1/252 # stepwidth in basis of 1year
-Maturity = np.array([10,20,30,40,50,60,100,252]) #Maturity always in timesteps of dt > integermatrix
+Maturity = np.array([30,40,50,60,100,252]) #Maturity always in timesteps of dt > integermatrix
 #sz_S0  = [1] #normalization
 #sz_rate = [-0.02/252,-0.1/252,0,0.1/252,0.2/252,0.05/252]
 #szenario_vola_calls ={}
-szenario_data =[]
 K = np.array([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1])
-<<<<<<< HEAD
-S = 1
-r = 0
-d_lambda = 0
-for alpha in sz_alpha:
-    for beta in sz_beta:
-        for gamma_star in sz_gamma:              _             
-            for omega in sz_omega:                                
-                vola = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K, r, Maturity, dt, output=1)
-                #szenario_vola_calls[(alpha,beta,gamma_star,omega)] =  vola.reshape((1,vola.shape[0]*vola.shape[1]))
-                szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
-# #===========================================================================
-#  
-=======
-
 r = 0 # yearl rate times dt example 5%*1/252
-value = 0
+# ============================================================================
+#szenario_data =[]
+#d_lambda = 0
+#S = 1
+#for alpha in sz_alpha:
+#    for beta in sz_beta:
+#        for gamma_star in sz_gamma:                           
+#            for omega in sz_omega:                                
+#                vola = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K, r, Maturity, dt, output=1)
+#                #szenario_vola_calls[(alpha,beta,gamma_star,omega)] =  vola.reshape((1,vola.shape[0]*vola.shape[1]))
+#                szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega]).reshape((1,4)),vola.reshape((1,vola.shape[0]*vola.shape[1]))),axis=1))   
+# ===========================================================================
+
 # use form=1 for usual format form = 0 for matrices
 form = 0
-szenario_data,szenarios = data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,value,form)
+szenario_data,szenarios = data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,1,form,typ="Model")
+szenario_data_vola, szenarios= data_generator(sz_alpha,sz_beta,sz_gamma,sz_omega,K,Maturity,dt,r,0,form)
+
 
 #surface plots================================================================
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-import numpy as np
 X, Y = np.meshgrid(K,Maturity)
-Z = szenario_data[15,:,:]
+sz_num = 15
+Z_data = szenario_data[sz_num,:,:]
+Z_Vola = szenario_data_vola[sz_num,:,:]
+fig = plt.figure()
+
+ax = fig.gca(projection='3d')
+surf = ax.plot_surface(X, Y, Z_data, rstride=1, cstride=1, cmap='hot', linewidth=0, antialiased=False)
+ax.set_zlim(0, np.nanmax(Z_data))
+fig.colorbar(surf, shrink=0.5, aspect=5)
+plt.show()
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-sz_num = 1
-surf = ax.plot_surface(X, Y, szenario_data[sz_num,:,:], rstride=1, cstride=1, cmap='hot', linewidth=0, antialiased=False)
-ax.set_zlim(-1.01, 1.01)
+surf = ax.plot_surface(X, Y, Z_Vola, rstride=1, cstride=1, cmap='hot', linewidth=0, antialiased=False)
+ax.set_zlim(0, np.nanmax(Z_Vola))
 fig.colorbar(surf, shrink=0.5, aspect=5)
 plt.show()
  
@@ -73,7 +78,15 @@ plt.show()
 
 
 
+
+
 # Testin area ================================================================
+
+
+
+
+
+
 #!pip install scikit-image
 #!pip install -U efficientnet
 #import efficientnet as efn 
@@ -119,7 +132,7 @@ plt.show()
 # # #===========================================================================
 # #  
 # =============================================================================
->>>>>>> b123f3a1a580e6307871809cfe13c1857edc4742
+
 #  dt = 1                                          #Zeitschritt                        
 #  alpha = 0.01    
 #  beta = 0.2

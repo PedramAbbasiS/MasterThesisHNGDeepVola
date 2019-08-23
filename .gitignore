@@ -1,2 +1,10 @@
 
-Python_Code/__pycache__/help_fun.cpython-37.pyc
+Python_Code/data_utils.py
+Python_Code/data/cifar/test_batch
+Python_Code/data/cifar/data_batch_5
+Python_Code/data/cifar/data_batch_4
+Python_Code/data/cifar/data_batch_3
+Python_Code/data/cifar/data_batch_2
+Python_Code/data/cifar/data_batch_1
+Python_Code/data/cifar/batches.meta
+Python_Code/__pycache__/data_utils.cpython-37.pyc
