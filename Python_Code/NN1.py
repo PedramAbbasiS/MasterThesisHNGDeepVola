@@ -14,7 +14,7 @@ import py_vollib.black_scholes.implied_volatility as vol
 import time
 import scipy
 
-data = np.load('data_IV_45000_MC_1e4.npy')
+data = np.load('data_test_small_new1.npy')
 Nparameters = 5
 maturities = np.array([80, 110, 140, 170, 200])
 strikes = np.array([0.9, 0.95, 0.975, 1, 1.025, 1.05, 1.1])
@@ -159,6 +159,7 @@ for i in range(Nmaturities):
     
     plt.legend()
 plt.tight_layout()
+plt.savefig('HNG_smile.png', dpi=300)
 plt.show()
 
 #==============================================================================
@@ -210,7 +211,8 @@ Timing=[]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
-for i in range(5000):
+n = 250
+for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
     #Levenberg-Marquardt
@@ -228,11 +230,11 @@ np.savetxt("NNParametersHNG.txt",LMParameters)
 #==============================================================================
 #Calibration Errors with Levenberg-Marquardt¶
 titles=["$\\alpha$","$\\beta$","$\\gamma$","$\\omega$", "$\\lambda$"]
-average=np.zeros([Nparameters,5000])
+average=np.zeros([Nparameters,n])
 fig=plt.figure(figsize=(12,8))
 for u in range(Nparameters):
     ax=plt.subplot(2,3,u+1)
-    for i in range(5000):
+    for i in range(n):
         
         X=X_test[i][u]
         plt.plot(X,100*np.abs(LMParameters[i][u]-X)/np.abs(X),'b*')
@@ -247,7 +249,7 @@ for u in range(Nparameters):
 
     print("average= ",np.mean(average[u,:]))
 plt.tight_layout()
-plt.savefig('rBergomiParameterRelativeErrors.png', dpi=300)
+plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
 plt.show()
 
 

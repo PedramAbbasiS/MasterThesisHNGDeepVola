@@ -28,7 +28,7 @@ maturities=np.array([0.1,0.3,0.6,0.9,1.2,1.5,1.8,2.0 ])
 Nparameters = 4
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
-xx=data[:,:Nparameters]
+xx=data[::Nparameters]
 yy=data[:,Nparameters:]
 
 #####
@@ -202,13 +202,14 @@ def JacobianLS(x,sample_ind):
 
 Approx=[]
 Timing=[]
-sample_ind = 500
-X_sample = X_test_trafo[sample_ind]
-y_sample = y_test[sample_ind]
+#sample_ind = 500
+#X_sample = X_test_trafo[sample_ind]
+#y_sample = y_test[sample_ind]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(4)
-for i in range(5000):
+n = 250
+for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
     #Levenberg-Marquardt
@@ -226,11 +227,11 @@ np.savetxt("NNParametersRoughBergomi.txt",LMParameters)
 #==============================================================================
 #Calibration Errors with Levenberg-Marquardt¶
 titles=["$\\xi_0$","$\\nu$","$\\rho$","$H$"]
-average=np.zeros([4,5000])
+average=np.zeros([Nparameters,n])
 fig=plt.figure(figsize=(12,8))
-for u in range(4):
+for u in range(Nparameters):
     ax=plt.subplot(2,2,u+1)
-    for i in range(5000):
+    for i in range(n):
         
         X=X_test[i][u]
         plt.plot(X,100*np.abs(LMParameters[i][u]-X)/np.abs(X),'b*')

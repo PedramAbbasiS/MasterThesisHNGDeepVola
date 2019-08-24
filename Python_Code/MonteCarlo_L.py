@@ -35,9 +35,9 @@ for i in range(Nsim):
     ###########################################################################
     #only to watch computational status
     j = j+1
-    if (j == 10):
+    if (j == 50):
         l = l + 1
-        print(l*10)
+        print(l*50)
         j = 0 
     ###########################################################################    
     while ((price < 1e-30).any()) or ((price > .33).any()):  #to avoid numerical problems and too extreme scenarios
@@ -45,11 +45,11 @@ for i in range(Nsim):
         beta = 1
         gamma_star = 1
         while (beta+alpha*gamma_star**2 > 1):           #stationary condition
-            alpha = np.random.uniform(low=5e-8, high=5e-5)
-            beta = np.random.uniform(low=.1, high=.6)  
-            gamma_star = np.random.uniform(low=300, high=500)
-        omega = np.random.uniform(low=1e-6, high=9e-6) 
-        d_lambda = np.random.uniform(low=.4, high=2.4) 
+            alpha = np.random.uniform(low=9e-7, high=2e-6)
+            beta = np.random.uniform(low=.45, high=.65)  
+            gamma_star = np.random.uniform(low=400, high=550)
+        omega = np.random.uniform(low=2e-6, high=8e-6) 
+        d_lambda = np.random.uniform(low=.05, high=.6) 
         price = HNG_MC_simul(alpha, beta, gamma_star, omega, d_lambda, S, K,
                              r, Maturity, dt, output=1, risk_neutral = False)
     szenario_data.append(np.concatenate((np.asarray([alpha,beta,gamma_star,omega,d_lambda, 
@@ -83,17 +83,18 @@ for i in range(Nsim):
                 #pass
                 stri[m,k] = np.nan
     iv[i] =  stri.reshape((1,len(Maturity)*len(K)))  
-iv1 = iv[(iv!=np.nan).all(axis=1)]
+iv1 = iv[(~np.isnan(iv)).all(axis=1)]
 
-print("number of nonteros vola-data: ", np.count_nonzero(iv))
-print("max vola: ", np.max(iv))
-print("min vola: ", np.min(iv))
-print("mean vola: ", np.mean(iv))
-print("median vola: ", np.median(iv))
-print("low volas: ", len(iv[(iv<.07).any(axis=1)]))
+print("number of nonteros vola-data: ", np.count_nonzero(iv1))
+print("max vola: ", np.max(iv1))
+print("min vola: ", np.min(iv1))
+print("mean vola: ", np.mean(iv1))
+print("median vola: ", np.median(iv1))
+print("low volas: ", len(iv1[(iv1<.07).any(axis=1)]))
 
 data_connect = np.concatenate((szenario_data_2[:,:6], iv), axis=1)
-np.save('data_test_small', data_connect)
+data_connect = data_connect[(~np.isnan(data_connect)).all(axis=1)]
+np.save('data_test_small_new1', data_connect)
 #mean_diff = np.mean(szenario_data_2[:,5])
 #max_diff = np.max(szenario_data_2[:,5])
 #np.save('data_shortmat_MC_1e5', szenario_data_2)
@@ -114,7 +115,7 @@ np.save('data_test_small', data_connect)
 
 
 ###plot
-iv_re = iv.reshape((1,Nsim*Nstrikes*Nmaturities))
+iv_re = iv1.reshape((1,len(iv1)*Nstrikes*Nmaturities))
 from matplotlib import pyplot as plt 
 from scipy.stats import gaussian_kde
 density = gaussian_kde(iv_re)
