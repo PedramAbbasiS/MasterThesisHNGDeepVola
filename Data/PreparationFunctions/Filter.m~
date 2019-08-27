@@ -1,0 +1,7 @@
+clearvars
+load('/Users/Lukas/Documents/GitHub/SeminarOptions/Data/Datasets/SP500/SP500_date_prices_returns.mat');
+SP500_dates = datetime(SP500_date_prices_returns(1,:),'ConvertFrom','datenum');
+SP500_log_returns.Format = 'dd.MM.yyyy';
+SP500_log_returns(2,:) = SP500_date_prices_returns(2,:);
+formatOut = 'mm/dd/yy';
+test = datestr(SP500_date_prices_returns(1,:),formatOut)
