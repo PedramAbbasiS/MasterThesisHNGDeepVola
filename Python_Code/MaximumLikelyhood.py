@@ -10,16 +10,15 @@ from datetime import date
 dates =[]
 data = np.loadtxt("C:/Users/henri/Documents/SeminarOptions/Python_Code/SP500_data/SP500_data.txt",delimiter=',')
 for i in range(data.shape[0]):
-    data[i,0]-=366
+    data[i,0]-=366 # conversion formula matlab to python
     dates.append(date.fromordinal(int(data[i,0])))
 
-idx = data[:,1]==12 or data[:,1]==13 or data[:,1]==14
+idx = data[:,1]==2012
 logret = data[idx,3]
-# conversion formula: matlab to python: 
 # Loglikelyhood with normal error
 
 #initialised with uncond. variance
-def ll_hng_n(par0,x,r):
+def ll_hng_n(par0,x,r=0):
     # "par0" is a vector containing the parameters over# which the optimization will be performed
     # "x" is a vector containing the historical log returns on the underlying asset
     # "r" is the risk-free rate, expressed here on a daily basis
@@ -44,12 +43,13 @@ def ll_hng_n(par0,x,r):
          
   
 
-#stationarity constraint
-hng_stat = {'type': 'ineq','fun': lambda x: 1 - (x[3]**2)*x[1]-x[2]-1e-08}
+#stationarity constraintro encounter
+hng_stat = {'type': 'ineq','fun': lambda x: 1 - (x[3]**2)*x[1]-x[2]-1e-06}
 #Theta = (omega,alpha,beta,gamma,lambda)
-par0 = np.array([5e-6,1e-6,0.6,400,0.2])
+#par0 = np.array([5e-6,1e-6,0.6,200,0.2])
+par0 = np.array([0.01,0.001,0.6,20,0.2])
 #par0 are choosen as hng values from 1992 
-result = minimize(ll_hng_n, par0, method='SLSQP',args = (logret*100), constraints =  hng_stat,
-                  bounds = [(1e-08,1),(0.0,1.0),(-1.0,1.0),(-1000,1000),(-10,10)],options={'disp': True,'ftol':1e-10})
+result = minimize(ll_hng_n, par0, method='SLSQP',args = (logret), constraints =  hng_stat,
+                  bounds = [(1e-08,1),(0.0,1.0),(0,1.0),(-1000,1000),(-10,10)],options={'disp': True,'ftol':1e-10})
 
 
