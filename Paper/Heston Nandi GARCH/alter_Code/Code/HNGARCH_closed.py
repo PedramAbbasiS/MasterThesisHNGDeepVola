@@ -55,8 +55,8 @@ def HestonNandi(S_0,X,Sig_,T,r):
             A[T-i]=A[T-i+1]+phi*r+B[T-i+1]*w-.5*np.log(1-2*a*B[T-i+1])
             B[T-i]=phi*(lam_+g_)-.5*g_**2+b*B[T-i+1]+.5*(phi-g_)**2/(1-2*a*B[T-i+1])
  
-        file_pi = open('test.obj', 'w') 
-        pickle.dump(np.array2string(A), file_pi)
+        #file_pi = open('test.obj', 'w') 
+        #pickle.dump(np.array2string(A), file_pi)
    
         #A[T-1]=A[0]+phi*r+B[0]*w-.5*np.log(1-2*a*B[0])                    
         #B[T-1]=phi*(lam_+g_)-.5*g_**2+b*B[0]+.5*(phi-g_)**2/(1-2*a*B[0])
