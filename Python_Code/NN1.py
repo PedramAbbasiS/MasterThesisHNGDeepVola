@@ -14,10 +14,16 @@ import py_vollib.black_scholes.implied_volatility as vol
 import time
 import scipy
 
-data = np.load('data_test_small_new1.npy')
+###matlab
+import scipy.io
+mat = scipy.io.loadmat('data_v2.mat')
+data = mat['data']
+#######
+
+#data = np.load('data_test_small_new1.npy')
 Nparameters = 5
-maturities = np.array([80, 110, 140, 170, 200])
-strikes = np.array([0.9, 0.95, 0.975, 1, 1.025, 1.05, 1.1])
+maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
+strikes = np.array([0.8, 0.84, 0.89, 0.93, 0.98, 1.02, 1.07, 1.11, 1.16, 1.2])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
@@ -80,7 +86,7 @@ def root_mean_squared_error(y_true, y_pred):
 NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 200, verbose = True, shuffle=1)
-NN1.save_weights('NN_HNGarch_weights.h5')
+#NN1.save_weights('NN_HNGarch_weights.h5')
 
 
 #test = yinversetransform(NN1.predict(X_test_trafo))
@@ -133,7 +139,7 @@ ax.set_yticklabels(maturities)
 plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
 plt.tight_layout()
-plt.savefig('HNG_NNErrors.png', dpi=300)
+#plt.savefig('HNG_NNErrors.png', dpi=300)
 plt.show()
 
 
@@ -159,7 +165,7 @@ for i in range(Nmaturities):
     
     plt.legend()
 plt.tight_layout()
-plt.savefig('HNG_smile.png', dpi=300)
+#plt.savefig('HNG_smile.png', dpi=300)
 plt.show()
 
 #==============================================================================
@@ -225,7 +231,7 @@ for i in range(n):
     Approx.append(np.copy(solutions))
     Timing.append(np.copy(times))
 LMParameters=[Approx[i] for i in range(len(Approx))]
-np.savetxt("NNParametersHNG.txt",LMParameters)
+#np.savetxt("NNParametersHNG.txt",LMParameters)
 
 #==============================================================================
 #Calibration Errors with Levenberg-Marquardt¶
@@ -249,7 +255,7 @@ for u in range(Nparameters):
 
     print("average= ",np.mean(average[u,:]))
 plt.tight_layout()
-plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
+#plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
 plt.show()
 
 

@@ -1,4 +1,4 @@
-function OptionPrice=HestonNandi(S_0,X,Sig_,T,r)
+function OptionPrice= HestonNandi(S_0,X,Sig_,T,r,w,a,b,g,lam)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % this function calculates the price of Call option based on the GARCH 
@@ -41,13 +41,17 @@ OptionPrice=.5*S_0+(exp(-r*T)/pi)*quad(@Integrand1,eps,100)-X*exp(-r*T)*(.5+(1/p
         phi=phi';    % the input has to be a row vector
         
         % GARCH parameters
-        lam=2;
+        %lam=2;
         lam_=-.5;                   % risk neutral version of lambda
-        a=.000005;
-        b=.85;
-        g=150;                      % gamma coefficient
+        %a=.000005;
+        %a = -3e-6 + (1.59e-6+3e-6).*rand(1,1);
+        %b = .589;
+        %b=.85;
+        %g = 463.3;
+        %g=150;                      % gamma coefficient
         g_=g+lam+.5;                % risk neutral version of gamma
-        w=Sig_*(1-b-a*g^2)-a;       % GARCH intercept
+        %w=Sig_*(1-b-a*g^2)-a;       % GARCH intercept
+        %w = 7.55e-6 + (3.45e-4-7.55e-6).*rand(1,1);
         
         % recursion for calculating A(t,T,Phi)=A_ and B(t,T,Phi)=B_
         A(:,T-1)=phi.*r;
