@@ -221,7 +221,45 @@ def HNG_MC_simul(alpha, beta, gamma, omega, d_lambda, S, K, rate, T, dt, PutCall
                 return vola
             else:
                 return price,vola
+
+def ll_hng_n(par0,x,r=0,history=False):
+    # "par0" is a vector containing the parameters over# which the optimization will be performed
+    # "x" is a vector containing the historical log returns on the underlying asset
+    # "r" is the risk-free rate, expressed here on a daily basis
+    omega=par0[0]   # the variance’s intercept
+    alpha=par0[1]   # the autoregressive parameter
+    beta=par0[2]    # the persistence parameter
+    gamma=par0[3]   # the leverage parameter
+    lambda0=par0[4] # the risk premium
+    loglik=0        # the log-likelihood is initialized at 0
+    h=(omega+alpha)/(1-beta-alpha*gamma**2) # initianlize variance as longterm variance
+    h2 = np.zeros((len(x)+1,1))
+    h2[0] = h
+    for i in range(0,len(x)):
+        # The conditional log-likelihood at time i is:
+        #temp = -0.5*np.log(2*np.pi)-0.5*np.log(h)-0.5*(x[i]-r-lambda0*h)**2/h
+        temp = stats.norm.logpdf(x[i],r+lambda0*h,np.sqrt(h))
+        loglik=loglik+temp
+        # An the conditional variance is updated as well
+        h=omega+alpha*(x[i]-r-(lambda0+gamma)*h)**2/h+beta*h
+        h2[i+1] = h
+    if history:
+        return -loglik,h2
+    else:
+        return -loglik
+
+
+
+
+
+
+
+
+
+
 """
+
+
 todo + fragen
     bs input were sind jährlich? unser input is täglich? lösung1: daily convertion *252 (implementiert)
     lösung2=yearly vola output convertieren? (nicht implementiert,geht das überhaupt?)
