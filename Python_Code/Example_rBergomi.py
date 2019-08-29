@@ -28,7 +28,7 @@ maturities=np.array([0.1,0.3,0.6,0.9,1.2,1.5,1.8,2.0 ])
 Nparameters = 4
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
-xx=data[::Nparameters]
+xx=data[:,:Nparameters]
 yy=data[:,Nparameters:]
 
 #####
@@ -87,7 +87,7 @@ def root_mean_squared_error(y_true, y_pred):
 rBerg.compile(loss = root_mean_squared_error, optimizer = "adam")
 rBerg.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 200, verbose = True, shuffle=1)
-rBerg.save_weights('RoughBergomiNNWeights.h5')
+#rBerg.save_weights('RoughBergomiNNWeights.h5')
 
 #==============================================================================
 #error plots
@@ -132,7 +132,7 @@ ax.set_yticklabels(maturities)
 plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
 plt.tight_layout()
-plt.savefig('rBergomiNNErrors.png', dpi=300)
+#plt.savefig('rBergomiNNErrors.png', dpi=300)
 plt.show()
 
 
@@ -222,7 +222,7 @@ for i in range(n):
     Approx.append(np.copy(solutions))
     Timing.append(np.copy(times))
 LMParameters=[Approx[i] for i in range(len(Approx))]
-np.savetxt("NNParametersRoughBergomi.txt",LMParameters)
+#np.savetxt("NNParametersRoughBergomi.txt",LMParameters)
 
 #==============================================================================
 #Calibration Errors with Levenberg-Marquardt¶
@@ -246,5 +246,5 @@ for u in range(Nparameters):
 
     print("average= ",np.mean(average[u,:]))
 plt.tight_layout()
-plt.savefig('rBergomiParameterRelativeErrors.png', dpi=300)
+#plt.savefig('rBergomiParameterRelativeErrors.png', dpi=300)
 plt.show()
