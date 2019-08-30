@@ -17,57 +17,22 @@ import scipy
 
 ###matlab
 import scipy.io
-mat = scipy.io.loadmat('data_v2_2000_new.mat')
-data = mat['data']
+#mat = scipy.io.loadmat('data_v2_2000_new.mat')
+#data = mat['data']
+mat = scipy.io.loadmat('data_vola_mle.mat')
+data = mat['data_vola']
 #######
 
 #data = np.load('data_test_small_new1.npy')
 Nparameters = 5
-maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
+#maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
+maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
 strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
-yy=data[:,Nparameters+1:]
-
-'''
-yy_min= np.amin(yy, axis = 0)
-yy_min_p = np.reshape(yy_min, (Nmaturities, Nstrikes))
-yy_max = np.amax(yy, axis = 0)
-yy_max_p = np.reshape(yy_max, (Nmaturities, Nstrikes))
-yy_mean = np.mean(yy, axis = 0)
-yy_mean_p = np.reshape(yy_mean, (Nmaturities, Nstrikes))
-yy_median = np.median(yy, axis = 0)
-yy_median_p = np.reshape(yy_median, (Nmaturities, Nstrikes))
-
-# This import registers the 3D projection, but is otherwise unused.
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-
-# Make data.
-X = strikes
-Y = maturities
-X, Y = np.meshgrid(X, Y)
-
-
-#ax.contour3D(X, Y, Z, 50, cmap='binary')
-ax.plot_surface(X, Y, yy_median_p, rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.plot_surface(X, Y, yy_max_p, rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.plot_surface(X, Y, yy_min_p, rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.plot_surface(X, Y, yy_m_p, rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.set_xlabel('Strikes')
-ax.set_ylabel('Maturities')
-ax.set_zlabel('Volatility');
-plt.show()
-'''
+#yy=data[:,Nparameters+1:]
+yy=data[:,Nparameters:]
 
 #####
 # split into train and test sample
@@ -190,6 +155,43 @@ plt.tight_layout()
 plt.show()
 
 
+
+#==============================================================================
+#vola surface
+import random
+test_sample = random.randint(0,len(y_test))
+y_test_sample = y_test_re[test_sample,:]
+y_predict_sample = prediction[test_sample]
+
+y_test_sample_p = np.reshape(y_test_sample, (Nmaturities, Nstrikes))
+y_predict_sample_p = np.reshape(y_predict_sample, (Nmaturities, Nstrikes))
+diff = y_test_sample_p-y_predict_sample_p 
+
+# This import registers the 3D projection, but is otherwise unused.
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+# Make data.
+X = strikes
+Y = maturities
+X, Y = np.meshgrid(X, Y)
+
+
+#ax.contour3D(X, Y, Z, 50, cmap='binary')
+ax.plot_surface(X, Y, y_test_sample_p, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.plot_surface(X, Y, y_predict_sample_p , rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.set_xlabel('Strikes')
+ax.set_ylabel('Maturities')
+ax.set_zlabel('Volatility');
+plt.show()
+
+
 #==============================================================================
 #smile
 sample_ind = 12
@@ -256,6 +258,11 @@ def CostFuncLS(x,sample_ind):
 def JacobianLS(x,sample_ind):
     return NeuralNetworkGradient(x).T
 
+def CostFunc(x,sample_ind):
+    return np.sum(np.power((NN1.predict(x.reshape(1,Nparameters))[0]-y_test_trafo[sample_ind]),2))
+def Jacobian(x,sample_ind):
+    return 2*np.sum((NN1.predict(x.reshape(1,Nparameters))[0]-y_test_trafo[sample_ind])*NeuralNetworkGradient(x),axis=1)
+
 Approx=[]
 Timing=[]
 #sample_ind = 500
@@ -264,10 +271,16 @@ Timing=[]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
-n = 100
+n = 500
 for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
+    #L-BFGS-B
+    #start= time.clock()
+    #I=scipy.optimize.minimize(CostFunc,x0=init,args=i,method='L-BFGS-B',jac=Jacobian,tol=1E-10,options={"maxiter":5000})
+    #end= time.clock()
+    #solutions=myinverse(I.x)
+    #times=end-start
     #Levenberg-Marquardt
     start= time.clock()
     I=scipy.optimize.least_squares(CostFuncLS, init, JacobianLS, args=(i,), gtol=1E-10)
@@ -305,4 +318,13 @@ plt.tight_layout()
 #plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
 plt.show()
 
+
+
+#==============================================================================
+for u in range(Nparameters):
+    for i in range(n):
+        Y = y_test[i,:]
+        Y_pred = NN1.predict(x.reshape(1,Nparameters))[0]
+        X=X_test[i][u]
+        plt.plot(X,100*np.abs(LMParameters[i][u]-X)/np.abs(X),'b*')
 

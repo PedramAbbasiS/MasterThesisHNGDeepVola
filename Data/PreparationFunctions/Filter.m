@@ -1,5 +1,6 @@
 clearvars
 load('/Users/Lukas/Documents/GitHub/SeminarOptions/Data/Datasets/SP500/SP500_date_prices_returns.mat');
+load('/Users/Lukas/Documents/GitHub/SeminarOptions/Data/Datasets/SP500/Calls2015.mat');
 SP500_dates1 = datetime(SP500_date_prices_returns(1,:),'ConvertFrom','datenum');
 SP500_dates1.Format = 'dd.MM.yyyy';
 %SP500_year = year(SP500_dates);

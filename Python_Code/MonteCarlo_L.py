@@ -118,7 +118,8 @@ np.save('data_test_small_new1', data_connect)
 iv_re = iv1.reshape((1,len(iv1)*Nstrikes*Nmaturities))
 from matplotlib import pyplot as plt 
 from scipy.stats import gaussian_kde
-density = gaussian_kde(iv_re)
+#density = gaussian_kde(iv_re)
+density = gaussian_kde(data[:,5])
 xs = np.linspace(0,1,200)
 density.covariance_factor = lambda : .25
 density._compute_covariance()
