@@ -96,10 +96,15 @@ disp(['mean vola: ', num2str(mean(mean(iv1)))])
 disp(['median vola: ', num2str(median(median(iv1)))])
 disp(['low volas: ', num2str(length(iv1(iv1<.07)))])
 %%
+data_price = scenario_data(1:4137,[1:5,8:end]);
+data_vola = [scenario_data(1:4137,[1:5]),iv1];
+save('data_price_mle','data_price')
+save('data_vola_mle','data_vola')
+%% 
 %figure
 %boxplot(reshape(iv1,[1,Nsim*156]))
 figure
-histogram(reshape(iv1,[1,Nsim*156]))
+histogram(reshape(iv1,[1,4137*156]))
 %figure
 %[X,Y] = meshgrid(Maturity,K);
 %surf(X,Y,iv_p);
