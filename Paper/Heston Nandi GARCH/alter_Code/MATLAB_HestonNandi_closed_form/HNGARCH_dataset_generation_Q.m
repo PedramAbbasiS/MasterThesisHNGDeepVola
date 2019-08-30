@@ -7,15 +7,12 @@ S = 1;
 r = 0.0;
 j = 0;
 l = 0;
-Sig_=.04/252;
-Nsim = 10000;
+%Sig_=.04/252;
+Nsim = 50;
 scenario_data = zeros(Nsim, 6+Nstrikes*Nmaturities);
 for i = 1:Nsim
-    j = j+1;
-    if (j == 250)
-        l = l + 1;
-        disp(l*250)
-        j = 0; 
+    if ismember(i,floor(Nsim*[0.025:0.025:1]))
+        disp(i/Nsim)
     end
     price = -ones(Nmaturities,Nstrikes);
     while any(any(price < 0)) || any(any(price > 0.45))
@@ -85,7 +82,7 @@ disp(['min vola: ', num2str(min(min(iv1)))])
 disp(['mean vola: ', num2str(mean(mean(iv1)))])
 disp(['median vola: ', num2str(median(median(iv1)))])
 disp(['low volas: ', length(iv1(iv1<.07))])
-
+%%
 for i = 1:length(iv1)
     diff(i) = max(iv1(i,:))-min(iv1(i,:));
 end
@@ -99,7 +96,7 @@ data = [scenario_data(:,1:6),iv];
 data = data(~any(isnan(data),2),:);
 save('data_v2_10000.mat', 'data')
 
-
+%%
 re2 = zeros(Nsim,Nmaturities*Nstrikes);
 for i = 1:length(scenario_data)
     re1 = reshape(scenario_data(i,7:end), [Nmaturities, Nstrikes])';
