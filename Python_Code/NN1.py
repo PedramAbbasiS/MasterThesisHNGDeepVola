@@ -25,14 +25,18 @@ data = mat['data_vola']
 
 #data = np.load('data_test_small_new1.npy')
 Nparameters = 5
-#maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
-maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
-strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
+maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
+#maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
+#strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
+strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
 #yy=data[:,Nparameters+1:]
-yy=data[:,Nparameters:]
+yy=data[:,Nparameters:-13*4]
+setA = {i for i in range(104)}
+setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
+yy = yy[:,list(setA.difference(setB))]
 
 #####
 # split into train and test sample
@@ -321,10 +325,92 @@ plt.show()
 
 
 #==============================================================================
-for u in range(Nparameters):
-    for i in range(n):
-        Y = y_test[i,:]
-        Y_pred = NN1.predict(x.reshape(1,Nparameters))[0]
-        X=X_test[i][u]
-        plt.plot(X,100*np.abs(LMParameters[i][u]-X)/np.abs(X),'b*')
+#RMSE plot
+RMSE_opt = np.zeros(n)
+Y = len(y_test[0,:])
+for i in range(n):
+    Y = y_test[i,:]
+    Y_pred = yinversetransform(NN1.predict(myscale(LMParameters[i]).reshape(1,Nparameters))[0])
+    RMSE_opt[i] = np.sqrt(np.mean((Y-Y_pred)**2))
+fig=plt.figure(figsize=(12,8))
+plt.plot(RMSE_opt,'b*')
+plt.title("RMSE of optimal parameters",fontsize=20)
+plt.ylabel('RMSE vola surface',fontsize=15)
+plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter() )
+plt.tick_params(axis='both', which='major', labelsize=15)
+plt.tick_params(axis='both', which='minor', labelsize=15)
+plt.text(0.5, 0.8, 'Average: %1.2f%%\n Median:   %1.2f%% '%(np.mean(100*RMSE_opt),
+            np.quantile(100*RMSE_opt,0.5)), horizontalalignment='center',verticalalignment='center', transform=ax.transAxes,fontsize=15)
+plt.tight_layout()
+plt.show()
 
+#==============================================================================
+titles=["$\\alpha$","$\\beta$","$\\gamma$","$\\omega$", "$\\sigma$"]
+plt.figure(figsize=(18, 5))
+plt.clf()
+plt.subplot(121)
+
+ax = plt.gca()
+q=np.linspace(0,0.99,200)
+for u in range(Nparameters):
+    p=plt.plot(100*q,np.quantile(100*average[u,:],q),label=titles[u])
+    
+    c=p[0].get_color()
+ymin, ymax = ax.get_ylim()
+ax.set_xlim(0,100)
+plt.plot(100*np.ones(2)*0.95,np.array([0,ymax]),'--k',label="95% quantile")
+plt.title("Empirical CDF of parameter relative error",fontsize=20)
+plt.legend(fontsize=17)
+plt.xlabel("quantiles",fontsize=17)
+plt.ylabel("relative error",fontsize=17)
+plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter() )
+plt.gca().xaxis.set_major_formatter(mtick.PercentFormatter() )
+plt.tick_params(axis='both', which='major', labelsize=17)
+plt.tick_params(axis='both', which='minor', labelsize=17)
+plt.xticks(np.arange(0, 101, step=10))
+
+plt.grid()
+plt.subplot(122)
+
+
+ax = plt.gca()
+q=np.linspace(0,1,200)
+p=plt.plot(100*q,np.quantile(100*RMSE_opt,q),linewidth=3,label="RMSE")
+ymin, ymax = ax.get_ylim()
+plt.plot(100*np.ones(2)*0.99,np.array([0,ymax]),'--k',label="99% quantile")
+plt.title("Empirical CDF of implied vol surface RMSE",fontsize=20)
+plt.legend(fontsize=17)
+plt.xlabel("quantiles",fontsize=17)
+plt.ylabel("RMSE",fontsize=17)
+plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter() )
+plt.gca().xaxis.set_major_formatter(mtick.PercentFormatter() )
+plt.tick_params(axis='both', which='major', labelsize=17)
+plt.tick_params(axis='both', which='minor', labelsize=17)
+plt.xticks(np.arange(0, 101, step=10))
+plt.grid()
+plt.tight_layout()
+#plt.savefig('rBergomiErrorCDF.png', dpi=300)
+plt.show()
+
+#==============================================================================
+#real data
+sp500_mat = scipy.io.loadmat('surface_sp500_new.mat')
+surface = sp500_mat['vector_surface']
+surface_trafo = ytransform(surface,surface,surface)[2]
+def CostFuncLS_real(x):
+    return (yinversetransform(NN1.predict(x.reshape(1,Nparameters))[0])-surface_trafo).T.flatten()
+def JacobianLS_real(x):
+    return NeuralNetworkGradient(x).T
+
+solutions=np.zeros([1,Nparameters])
+init=np.zeros(Nparameters)
+
+#Levenberg-Marquardt
+I=scipy.optimize.least_squares(CostFuncLS_real, init, JacobianLS_real, gtol=1E-10)
+LMParameters_real=myinverse(I.x)
+Y_pred_real = yinversetransform(NN1.predict(myscale(LMParameters_real).reshape(1,Nparameters))[0])
+RMSE_opt_real = np.sqrt(np.mean((surface-Y_pred_real)**2))
+err_real_mean = np.mean(100*np.abs((surface-Y_pred_real)/surface),axis = 1)
+err_real = (100*np.abs((surface-Y_pred_real)/surface)).reshape((Nmaturities, Nstrikes))
+diff = (Y_pred_real - surface).reshape((Nmaturities, Nstrikes))
+np.savetxt("SP500_pred_NN.txt",Y_pred_real)
