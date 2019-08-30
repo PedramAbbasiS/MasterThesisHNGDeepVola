@@ -39,6 +39,7 @@ Strikes_better = 0.7:0.05:1.3;
 [X,Y] = meshgrid(Maturity_better,Strikes_better);
 surface_data = griddata(x,y,z,X,Y);
 surf(X,Y,surface_data)
-save('surface_sp500','surface_data')
+vector_surface = reshape(surface_data,[1,length(Maturity_better)*length(Strikes_better)]);
+save('surface_sp500','vector_surface')
 
 
