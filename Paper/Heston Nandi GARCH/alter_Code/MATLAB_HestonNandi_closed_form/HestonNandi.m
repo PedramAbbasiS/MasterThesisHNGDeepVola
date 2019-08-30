@@ -28,11 +28,11 @@ OptionPrice=.5*S_0+(exp(-r*T)/pi)*quad(@Integrand1,eps,100)-X*exp(-r*T)*(.5+(1/p
     % first and the second integrals
     
     function f1=Integrand1(phi)
-        f1=real((X.^(-i*phi).*charac_fun(i*phi+1))./(i*phi));
+        f1=real((X.^(-1i*phi).*charac_fun(1i*phi+1))./(1i*phi));
     end
 
     function f2=Integrand2(phi)
-        f2=real((X.^(-i*phi).*charac_fun(i*phi))./(i*phi));
+        f2=real((X.^(-1i*phi).*charac_fun(1i*phi))./(1i*phi));
     end
 
     % function that returns the value for the characteristic function

@@ -7,6 +7,7 @@ import keras
 from keras.models import Sequential
 from keras.layers import InputLayer
 from keras.layers import Dense
+from keras.layers import Dropout
 from keras import backend as K
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -16,18 +17,57 @@ import scipy
 
 ###matlab
 import scipy.io
-mat = scipy.io.loadmat('data_v2.mat')
+mat = scipy.io.loadmat('data_v2_2000_new.mat')
 data = mat['data']
 #######
 
 #data = np.load('data_test_small_new1.npy')
 Nparameters = 5
-maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
-strikes = np.array([0.8, 0.84, 0.89, 0.93, 0.98, 1.02, 1.07, 1.11, 1.16, 1.2])
+maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
+strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
 yy=data[:,Nparameters+1:]
+
+'''
+yy_min= np.amin(yy, axis = 0)
+yy_min_p = np.reshape(yy_min, (Nmaturities, Nstrikes))
+yy_max = np.amax(yy, axis = 0)
+yy_max_p = np.reshape(yy_max, (Nmaturities, Nstrikes))
+yy_mean = np.mean(yy, axis = 0)
+yy_mean_p = np.reshape(yy_mean, (Nmaturities, Nstrikes))
+yy_median = np.median(yy, axis = 0)
+yy_median_p = np.reshape(yy_median, (Nmaturities, Nstrikes))
+
+# This import registers the 3D projection, but is otherwise unused.
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+# Make data.
+X = strikes
+Y = maturities
+X, Y = np.meshgrid(X, Y)
+
+
+#ax.contour3D(X, Y, Z, 50, cmap='binary')
+ax.plot_surface(X, Y, yy_median_p, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.plot_surface(X, Y, yy_max_p, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.plot_surface(X, Y, yy_min_p, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.plot_surface(X, Y, yy_m_p, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.set_xlabel('Strikes')
+ax.set_ylabel('Maturities')
+ax.set_zlabel('Volatility');
+plt.show()
+'''
 
 #####
 # split into train and test sample
@@ -75,6 +115,7 @@ NN1 = Sequential()
 NN1.add(InputLayer(input_shape=(Nparameters,)))
 NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(30, activation = 'elu'))
+#NN1.add(Dropout(0.05))
 NN1.add(Dense(30, activation = 'elu'))
 #NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
@@ -82,6 +123,9 @@ NN1.summary()
 
 def root_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))
+    
+def root_relative_mean_squared_error(y_true, y_pred):
+        return K.sqrt(K.mean(K.square(y_pred - y_true)/y_true))    
         
 NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
@@ -106,6 +150,7 @@ ax=plt.subplot(1,3,1)
 err = np.mean(100*np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Average relative error",fontsize=15,y=1.04)
 plt.imshow(err.reshape(Nmaturities,Nstrikes))
+plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.colorbar(format=mtick.PercentFormatter())
 
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
@@ -120,6 +165,7 @@ err = 100*np.std(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Std relative error",fontsize=15,y=1.04)
 plt.imshow(err.reshape(Nmaturities,Nstrikes))
 plt.colorbar(format=mtick.PercentFormatter())
+plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
 ax.set_xticklabels(strikes)
 ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
@@ -138,6 +184,7 @@ ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
 ax.set_yticklabels(maturities)
 plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
+plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.tight_layout()
 #plt.savefig('HNG_NNErrors.png', dpi=300)
 plt.show()
@@ -145,7 +192,7 @@ plt.show()
 
 #==============================================================================
 #smile
-sample_ind = 125
+sample_ind = 12
 X_sample = X_test_trafo[sample_ind]
 y_sample = y_test[sample_ind]
 #print(scale.inverse_transform(y_sample))
@@ -157,7 +204,7 @@ for i in range(Nmaturities):
     
     plt.plot(np.log(strikes/S0),y_sample[i*Nstrikes:(i+1)*Nstrikes],'b',label="Input data")
     plt.plot(np.log(strikes/S0),prediction[i*Nstrikes:(i+1)*Nstrikes],'--r',label=" NN Approx")
-
+    #plt.ylim(0.22, 0.26)
     
     plt.title("Maturity=%1.2f "%maturities[i])
     plt.xlabel("log-moneyness")
@@ -217,7 +264,7 @@ Timing=[]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
-n = 250
+n = 100
 for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
@@ -235,7 +282,7 @@ LMParameters=[Approx[i] for i in range(len(Approx))]
 
 #==============================================================================
 #Calibration Errors with Levenberg-Marquardt¶
-titles=["$\\alpha$","$\\beta$","$\\gamma$","$\\omega$", "$\\lambda$"]
+titles=["$\\alpha$","$\\beta$","$\\gamma$","$\\omega$", "$\\sigma$"]
 average=np.zeros([Nparameters,n])
 fig=plt.figure(figsize=(12,8))
 for u in range(Nparameters):
