@@ -98,8 +98,8 @@ disp(['low volas: ', num2str(length(iv1(iv1<.07)))])
 %%
 data_price = scenario_data(1:4137,[1:5,8:end]);
 data_vola = [scenario_data(1:4137,[1:5]),iv1];
-save('data_price_mle','data_price')
-save('data_vola_mle','data_vola')
+save(strcat('data_price_',num2str(length(data_price)),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity))),'data_price')
+save(strcat('data_vola_',num2str(length(data_vola)),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity))),'data_vola')
 %% 
 %figure
 %boxplot(reshape(iv1,[1,Nsim*156]))
