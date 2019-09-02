@@ -25,18 +25,18 @@ data = mat['data_vola']
 
 #data = np.load('data_test_small_new1.npy')
 Nparameters = 5
-maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
-#maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
-#strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
-strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
+#maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
+maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
+strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
+#strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
-#yy=data[:,Nparameters+1:]
-yy=data[:,Nparameters:-13*4]
-setA = {i for i in range(104)}
-setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
-yy = yy[:,list(setA.difference(setB))]
+yy=data[:,Nparameters:]
+#yy=data[:,Nparameters:-13*4]
+#setA = {i for i in range(104)}
+#setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
+#yy = yy[:,list(setA.difference(setB))]
 
 #####
 # split into train and test sample
@@ -155,7 +155,7 @@ plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.tight_layout()
-#plt.savefig('HNG_NNErrors.png', dpi=300)
+plt.savefig('HNG_NNErrors.png', dpi=300)
 plt.show()
 
 
@@ -218,7 +218,7 @@ for i in range(Nmaturities):
     
     plt.legend()
 plt.tight_layout()
-#plt.savefig('HNG_smile.png', dpi=300)
+plt.savefig('HNG_smile.png', dpi=300)
 plt.show()
 
 #==============================================================================
@@ -319,7 +319,7 @@ for u in range(Nparameters):
 
     print("average= ",np.mean(average[u,:]))
 plt.tight_layout()
-#plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
+plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
 plt.show()
 
 
@@ -389,7 +389,7 @@ plt.tick_params(axis='both', which='minor', labelsize=17)
 plt.xticks(np.arange(0, 101, step=10))
 plt.grid()
 plt.tight_layout()
-#plt.savefig('rBergomiErrorCDF.png', dpi=300)
+plt.savefig('HNG_ErrorCDF.png', dpi=300)
 plt.show()
 
 #==============================================================================
