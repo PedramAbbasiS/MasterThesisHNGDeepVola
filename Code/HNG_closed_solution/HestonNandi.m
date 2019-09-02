@@ -1,4 +1,4 @@
-function OptionPrice= HestonNandi_vec(S_0,X,Sig_,T,r,w,a,b,g,lam)
+function OptionPrice=HestonNandi(S_0,X,Sig_,T,r)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % this function calculates the price of Call option based on the GARCH 
@@ -22,17 +22,17 @@ function OptionPrice= HestonNandi_vec(S_0,X,Sig_,T,r,w,a,b,g,lam)
     % r=.05/365;                  daily risk free rate
 
 
-OptionPrice=.5*S_0+(exp(-r*T)/pi)*integral(@Integrand1,eps,100)-X.*exp(-r*T).*(.5+(1/pi).*integral(@Integrand2,eps,100));
+OptionPrice=.5*S_0+(exp(-r*T)/pi)*quad(@Integrand1,eps,100)-X*exp(-r*T)*(.5+(1/pi)*quad(@Integrand2,eps,100));
 
     % function Integrand1 and Integrand2 return the values inside the 
     % first and the second integrals
     
     function f1=Integrand1(phi)
-        f1=real((X.^(-1i*phi).*charac_fun(1i*phi+1))./(1i*phi));
+        f1=real((X.^(-i*phi).*charac_fun(i*phi+1))./(i*phi));
     end
 
     function f2=Integrand2(phi)
-        f2=real((X.^(-1i*phi).*charac_fun(1i*phi))./(1i*phi));
+        f2=real((X.^(-i*phi).*charac_fun(i*phi))./(i*phi));
     end
 
     % function that returns the value for the characteristic function
@@ -41,17 +41,13 @@ OptionPrice=.5*S_0+(exp(-r*T)/pi)*integral(@Integrand1,eps,100)-X.*exp(-r*T).*(.
         phi=phi';    % the input has to be a row vector
         
         % GARCH parameters
-        %lam=2;
+        lam=2;
         lam_=-.5;                   % risk neutral version of lambda
-        %a=.000005;
-        %a = -3e-6 + (1.59e-6+3e-6).*rand(1,1);
-        %b = .589;
-        %b=.85;
-        %g = 463.3;
-        %g=150;                      % gamma coefficient
+        a=.000005;
+        b=.85;
+        g=150;                      % gamma coefficient
         g_=g+lam+.5;                % risk neutral version of gamma
-        %w=Sig_*(1-b-a*g^2)-a;       % GARCH intercept
-        %w = 7.55e-6 + (3.45e-4-7.55e-6).*rand(1,1);
+        w=Sig_*(1-b-a*g^2)-a;       % GARCH intercept
         
         % recursion for calculating A(t,T,Phi)=A_ and B(t,T,Phi)=B_
         A(:,T-1)=phi.*r;

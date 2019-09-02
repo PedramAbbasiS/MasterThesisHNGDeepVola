@@ -25,7 +25,7 @@ lam = 0.0;
 for i = 1:2
     for t = 1:Nmaturities
         for k = 1:Nstrikes
-            price(t,k)= HestonNandi_vec(S,K(k),Sig_(i),Maturity(t),r,w(i),a,b,g,lam);
+            price(t,k)= HestonNandi(S,K(k),Sig_(i),Maturity(t),r,w(i),a,b,g,lam);
         end
     end
     scenario_data(i,:) = [a, b, g, w(i), Sig_(i),(a+w(i))/(1-a*g^2-b), b+a*g^2, reshape(price', [1,Nstrikes*Nmaturities])];  

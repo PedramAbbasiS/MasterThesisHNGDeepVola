@@ -1,5 +1,0 @@
-HNG Option pricing:
-Python:
-https://github.com/SW71X/hngoption2/blob/master/hngoption/hngoption.py
-Matlab
-https://de.mathworks.com/matlabcentral/fileexchange/54494-heston-model-calibration?s_tid=FX_rc1_behav
