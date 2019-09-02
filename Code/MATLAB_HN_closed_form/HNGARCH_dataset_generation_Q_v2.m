@@ -1,12 +1,13 @@
 clearvars -except params_risk_neutral params_risk_neutral_no
+rng('default')
 %Maturity = [30, 60, 90, 120, 150];%, 180, 210, 240];%, 270, 300, 330, 360];
-Maturity = 40:20:120;
-%K = [0.8, 0.84, 0.89, 0.93, 0.98, 1.02, 1.07, 1.11, 1.16, 1.2];
-K = 0.90:0.03:1.18;
+Maturity = 30:30:240;
+%K = 0.9:0.025:1.1;
+K = 0.9:0.05:1.20;
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 S = 1;
-r = 0.05/252;
+r = 0.08/252;
 j = 0;
 l = 0;
 Nsim = 1 ;
@@ -14,13 +15,13 @@ scenario_data = zeros(Nsim, 7+Nstrikes*Nmaturities);
 fprintf('%s','Generatiting Prices. Progress: 0%')
 for i = 1:Nsim
     price = -ones(Nmaturities,Nstrikes);
-    while any(any(price < 0)) || any(any(price > 0.45))
+    while any(any(price < 0))% || any(any(price > 0.55))
         a = 1;
         b = 1;
         g = 1;
         while (b+a*g^2 >= 1)
-            a = 6e-7 + (2e-6-6e-7).*rand(1,1);
-            b = .4 + (.6-.4).*rand(1,1);
+            a = 6e-8 + (2e-6-6e-8).*rand(1,1);
+            b = .5 + (.7-.5).*rand(1,1);
             g = 450 + (500-450).*rand(1,1);
             % 95% quantil mit h(0) optimierung
             %a = 1.08e-8 + (2.35e-6-1.08e-8).*rand(1,1);
@@ -35,7 +36,7 @@ for i = 1:Nsim
             %g=5;
             disp(a*g^2+b)
         end
-        w = 5e-7 + (1.2e-6-5e-7).*rand(1,1);
+        w = 5e-8 + (1.2e-6-5e-8).*rand(1,1);
         %Sig_ = 1e-7 + (1e-3-1e-7).*rand(1,1);
         % 95% quantil mit h(0) optimierung
         %w = 1.6e-6 + (3.2e-6-1.6e-6).*rand(1,1);
@@ -47,9 +48,9 @@ for i = 1:Nsim
         %Sig_ = w+(a*g^2+b)*(w+a)/(1-b-a*g^2)*(1-var+2*var*rand(1,1));
         lam = 0.0;
         for t = 1:Nmaturities
-            Sig_=Sig_*(Maturity(t)/mean(Maturity));
+            Sig_=Sig_*Maturity(t)/mean(Maturity);
             for k = 1:Nstrikes
-                Sig_ = Sig_*(K(k)/mean(K));
+                Sig_ = Sig_*K(k);
                 price(t,k)= HestonNandi(S,K(k),Sig_,Maturity(t),r,w,a,b,g,lam);
             end
         end
@@ -101,8 +102,10 @@ disp(['low volas: ', num2str(length(iv1(iv1<.07)))])
 data_price = scenario_data(:,[1:5,8:end]);
 data_vola = [data_price(:,[1:5]),iv];
 data_vola = data_vola(~any(isnan(data_vola),2),:);
-%%
-figure, surf(reshape(data_vola(1,6:end),[13,12]))%,zlim([0 1])
+%
+figure
+[X,Y] = meshgrid(Maturity,K);
+surf(X,Y,iv_p);
 %save(strcat('data_price_',num2str(length(data_price)),'_',num2str(r*252),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity))),'data_price')
 %save(strcat('data_vola_',num2str(length(data_vola)),'_',num2str(r*252),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity))),'data_vola')
 %% 
@@ -110,22 +113,20 @@ figure, surf(reshape(data_vola(1,6:end),[13,12]))%,zlim([0 1])
 %boxplot(reshape(iv1,[1,Nsim*156]))
 %figure
 %histogram(reshape(iv1,[1,4137*156]))
-figure
-[X,Y] = meshgrid(Maturity,K);
-surf(X,Y,iv_p);
-figure
-subplot(2,3,1)
-histogram(iv1(:,1))
-subplot(2,3,2)
-histogram(iv1(:,2))
-subplot(2,3,3)
-histogram(iv1(:,10))
-subplot(2,3,4)
-histogram(iv1(:,30))
-subplot(2,3,5)
-histogram(iv1(:,80))
-subplot(2,3,6)
-histogram(iv1(:,end))
+% 
+% figure
+% subplot(2,3,1)
+% histogram(iv1(:,1))
+% subplot(2,3,2)
+% histogram(iv1(:,2))
+% subplot(2,3,3)
+% histogram(iv1(:,10))
+% subplot(2,3,4)
+% histogram(iv1(:,30))
+% subplot(2,3,5)
+% histogram(iv1(:,80))
+% subplot(2,3,6)
+% histogram(iv1(:,end))
 
 %plot(,iv_p)
 % %%
