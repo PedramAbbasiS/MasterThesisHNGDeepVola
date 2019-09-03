@@ -25,6 +25,7 @@ function OptionPrice= HestonNandi(S_0,X,Sig_,T,r,w,a,b,g,lam)
 <<<<<<< HEAD
 OptionPrice=.5*S_0+(exp(-r*T)/pi)*integral(@Integrand1,eps,100)-X*exp(-r*T)*(.5+(1/pi)*integral(@Integrand2,eps,100));
 =======
+OptionPrice=.5*S_0+(exp(-r*T)/pi)*integral(@Integrand1,0,500)-X*exp(-r*T)*(.5+(1/pi)*integral(@Integrand2,0,500));
 >>>>>>> f298123e1053b64ee8fd3dea0f5e83fc45c573ff
 
     % function Integrand1 and Integrand2 return the values inside the 
