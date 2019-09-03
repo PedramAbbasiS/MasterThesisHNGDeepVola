@@ -1,6 +1,6 @@
 clearvars
 Maturity = [30, 60, 90, 120, 150, 180, 210, 240];
-K = 0.7:0.05:1.3;
+K = 0.8:0.05:1.2;
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 S = 1;
