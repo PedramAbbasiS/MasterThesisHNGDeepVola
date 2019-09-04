@@ -15,7 +15,7 @@ while any(any(prices_opt < 0)) || any(any(prices_opt > 2*(max(K)-S)))
         disp(b+a*g^2);
     end
     w = 5.5e-7 + (1e-6-5.5e-7).*rand(1,1);
-    sig0 =5*(w+a)/(1-a*g^2-b);
+    sig0 =10*(w+a)/(1-a*g^2-b);
     args=fmincon(@(sig) error1(sig,K,S,Maturity,r,w,a,b,g),sig0,[],[],[],[],0.000001,0.001);
     prices_opt = zeros(length(Maturity),length(K));
     for k = 1:length(K)
@@ -64,5 +64,5 @@ function y = error1(Sig_,K,S,Maturity,r,w,a,b,g)
                 prices_bs(t,k)=blsprice(S,K(k),r,Maturity(t)/252,sqrt(252*Sig_));%(w+a)/(1-a*g^2-b)));
             end
         end
-        y=sum(sum(abs(prices_bs-prices_hn).^2.));%/abs(prices_bs)));
+        y=sum(sum(abs(prices_bs-prices_hn).^2./abs(prices_bs)));
 end

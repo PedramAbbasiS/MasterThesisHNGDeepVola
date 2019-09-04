@@ -5,7 +5,7 @@ close all;
 Maturity = 30:30:240;
 %K = 0.9:0.025:1.1;
 S = 1;
-K = 0.8:0.025:1.2;
+K = 0.8:0.025:1.3;
 K = K*S;
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
