@@ -4,7 +4,7 @@ path = '/Users/User/Documents/GitHub/SeminarOptions/Data/Datasets';
 stock_ind = 'SP500';
 year = 2015;
 Strikes = 0.8:0.025:1.2;
-Maturity = 30:60:210;
+Maturity = 30:30:240;
 %Maturity =60;
 bound =[100,100];
 surface = surface_generator(year,stock_ind,Strikes,Maturity,path,bound,0,0,0,0);
@@ -31,25 +31,16 @@ ub=[1e-2,1e-3,1e-3,1,800];
 x0 = [sig0,w0,a0,b0,g0];
 prices0 =hn_matrix(x0(1),Strikes,S,Maturity,r,x0(2),x0(3),x0(4),x0(5));
 %%
-clc;
 options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
-%problem = createOptimProblem('fmincon','objective',...
-%    fun,'x0',3,'lb',lb,'ub',ub,,'options',options);
-%gs = GlobalSearch;
-%[x,f] = run(gs,problem)
 args=fmincon(@(x) min_fit(x(1),Strikes,S,Maturity,r,x(2),x(3),x(4),x(5),surface),x0,[],[],[],[],lb,ub,@(x) nonlincon(x),options);
 prices_opt =hn_matrix(args(1),Strikes,S,Maturity,r,args(2),args(3),args(4),args(5));
+figure,surf(surface);hold on,surf(prices0);hold on,surf(prices_opt);legend('Surface','initial','opt')
 rel_error = (surface-prices_opt)./surface*100;
-rel_error2 = (surface-prices0)./surface*100;
-iv = zeros(length(Strikes),length(Maturity));imp_iv = zeros(length(Strikes),length(Maturity));iv_init=zeros(length(Strikes),length(Maturity));
+iv = zeros(17,8);imp_iv = zeros(17,8);iv_init=zeros(17,8);
 for t = 1:length(Maturity)
     for k = 1:length(Strikes)
         imp_iv(k,t) = blsimpv(S,Strikes(k),0.005,Maturity(t)/252,surface(k,t),10,0,1e-8,true);
-        if prices0(k,t)>=0
-            iv_init(k,t) = blsimpv(S,Strikes(k),0.005,Maturity(t)/252,prices0(k,t),10,0,1e-8,true);
-        else 
-            iv_init(k,t) = NaN;
-        end
+        iv_init(k,t) = blsimpv(S,Strikes(k),0.005,Maturity(t)/252,prices0(k,t),10,0,1e-8,true);
         if prices_opt(k,t)>=0
             iv(k,t) = blsimpv(S,Strikes(k),0.005,Maturity(t)/252,prices_opt(k,t),10,0,1e-8,true);
         else 
@@ -57,11 +48,11 @@ for t = 1:length(Maturity)
         end
     end
 end
-%%
-[X,Y] =meshgrid(Maturity,Strikes);
-figure,surf(X,Y,surface);hold on,surf(X,Y,prices_opt),hold on,surf(X,Y,prices0);legend('Surface','opt','initial')
-figure,surf(X,Y,iv);hold on, surf(X,Y,imp_iv);hold on, surf(X,Y,iv_init);
-figure,surf(X,Y,rel_error);hold on, surf(X,Y,rel_error2);
+[X,Y] =meshgrid(Maturity,Strikes(1:end));
+figure
+surf(X,Y,iv);hold on, surf(X,Y,imp_iv);
+figure
+surf(X,Y,rel_error);
 
 
 
