@@ -1,10 +1,12 @@
 clearvars
+surface = load('surfaceprice2013SP500.mat');
+surface1 = surface.surface;
 Maturity = [30, 60, 90, 120, 150, 180, 210, 240];
-K = 0.9:0.025:1.1;
+K = 0.8:0.025:1.2;
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 S = 1;
-r = 0.005/252;
+r = .005/252;
 j = 0;
 l = 0;
 Sig_=.04/252;
@@ -27,9 +29,12 @@ for i = 1:Nsim
         b = 1;
         g = 1;
         while (b+a*g^2 >= 1) || (b+a*g^2 <= 0.85)
-            a = 1.0e-6 + (1.5e-6-1.0e-6).*rand(1,1);
-            b = .57 + (.70-.57).*rand(1,1);
-            g = 450 + (500-450).*rand(1,1);
+            %a= 3e-6 + (7e-6-3e-6).*rand(1,1);
+            %b=(.8 + (.9-.8).*rand(1,1));
+            %g= (145 + (155-145).*rand(1,1));
+            a = (1.0e-6 + (1.5e-6-1.0e-6).*rand(1,1));
+            b = (.57 + (.70-.57).*rand(1,1));
+            g = (450 + (500-450).*rand(1,1));
             %a = 1e-6 + (9e-6-1e-6).*rand(1,1); %4.19*1e-7; %1e-8 + (1e-6-1e-8).*rand(1,1);
             %b = 0.2 + (0.5-0.2).*rand(1,1); %.589; %.5 + (.65-.5).*rand(1,1);
             %g = 400 + (500-400).*rand(1,1); %463.3; %101.56; %400 + (600-400).*rand(1,1);
@@ -43,25 +48,39 @@ for i = 1:Nsim
             %g = 441 + (590-441).*rand(1,1);
         end
         %w = .04/252 9*1e-7 + (1*1e-6 -9*1e-7).* rand(1,1); %6.86*1e-5; %7.55e-6 + (3.45e-4-7.55e-6).*rand(1,1);
-        %Sig_ = .1^2/252; %((w+a)/(1-a*g^2-b)); %*(.7 + (1.3-.7).*rand(1,1));
+         %*(.7 + (1.3-.7).*rand(1,1));
         %w = Sig_*(1-a*g^2-b)-a;
         %1e-4 + (1e-3-1e-4).*rand(1,1);
-        w = 5.5e-7 + (1e-6-5.5e-7).*rand(1,1);
+        %Sig_= (.03 + (0.07-0.03).*rand(1,1))./252;
+        %w=Sig_*(1-b-a*g^2)-a; 
+        w = 20*(5.5e-7 + (1e-6-5.5e-7).*rand(1,1));
+        Sig_ = (w+a)/(1-a*g^2-b);
         % 95% quantil mit h(0) optimierung
         %w = 1.6e-6 + (3.2e-6-1.6e-6).*rand(1,1);
         %Sig_ = 4.5e-5 + (1e-3-4.5e-5).*rand(1,1);
         % 95% quantil ohne h(0) optimierung
         %w = 4.1e-7 + (2.9e-6-4.1e-7).*rand(1,1);
-        Sig_ = (8+(14-8)*rand(1,1))*(w+a)/(1-b-a*g^2);
+        %Sig_ = (w+a)/(1-b-a*g^2);
+        %(5+(10-5)*rand(1,1))*
         %(w+a)/(1-b-a*g^2);
         lam = 0.0;
         for t = 1:Nmaturities
-            for k = 1:Nstrikes
+            %for k = 1:Nstrikes
+            for k = Nstrikes:-1:1
                 price(t,k)= HestonNandi(S,K(k),Sig_,Maturity(t),r,w,a,b,g,lam);
+                if any(any(price < 0)) || any(any(price > 1.5*(S-min(K))))
+                    continue
+                end
+            end
+            if any(any(price < 0)) || any(any(price > 1.5*(S-min(K))))
+                continue
             end
         end
-        disp(['max price: ', num2str(max(max(price)))])
-        disp(['min price: ', num2str(min(min(price)))])
+        if any(any(price < 0)) || any(any(price > 1.5*(S-min(K))))
+            continue
+        end
+        %disp(['max price: ', num2str(max(max(price)))])
+        %disp(['min price: ', num2str(min(min(price)))])
     end
     scenario_data(i,:) = [a, b, g, w, Sig_, b+a*g^2, reshape(price', [1,Nstrikes*Nmaturities])];  
 end                              
@@ -81,6 +100,7 @@ disp(['median long-term vola: ', num2str(median(sqrt(252*scenario_data(:,5))))])
 
 [X,Y] = meshgrid(K,Maturity);
 surf(X,Y,reshape(scenario_data(1,7:end),[Nstrikes, Nmaturities])')
+%surf(X,Y, (surface1'-price)./surface1')
 %%
 prices_all = scenario_data(:, 7:end);
 iv = zeros(size(scenario_data(:,7:end)));
@@ -119,7 +139,7 @@ data_hn_new = data_hn_new(~any(isnan(data_hn_new),2),:);
 for i = 1:valid_sim
     for t = 1:Nmaturities
         for k = 1:Nstrikes 
-            price_bs(t,k) = blsprice(S,K(k),r*252,Maturity(t)/252,252*data_hn_new(i,5));
+            price_bs(t,k) = blsprice(S,K(k),r*252,Maturity(t)/252,sqrt(252*data_hn_new(i,5)));
         end
     end
     price_bs_all(i,:) = reshape(price_bs', [1,Nstrikes*Nmaturities]);
@@ -144,7 +164,7 @@ ksdensity(iv1(:,4))
 
 data = [scenario_data(:,1:6),iv];
 data = data(~any(isnan(data),2),:);
-save('data_v2_2000_new.mat', 'data')
+save('data_v5_1000_new.mat', 'data')
 
 
 %re2 = zeros(Nsim,Nmaturities*Nstrikes);

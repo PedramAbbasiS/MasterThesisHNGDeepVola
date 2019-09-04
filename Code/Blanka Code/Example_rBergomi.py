@@ -137,6 +137,41 @@ plt.show()
 
 
 #==============================================================================
+#vola surface
+import random
+test_sample = random.randint(0,len(y_test))
+y_test_sample = y_test_re[test_sample,:]
+y_predict_sample = prediction[test_sample]
+
+y_test_sample_p = np.reshape(y_test_sample, (Nmaturities, Nstrikes))
+y_predict_sample_p = np.reshape(y_predict_sample, (Nmaturities, Nstrikes))
+diff = y_test_sample_p-y_predict_sample_p 
+
+# This import registers the 3D projection, but is otherwise unused.
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+# Make data.
+X = strikes
+Y = maturities
+X, Y = np.meshgrid(X, Y)
+
+
+#ax.contour3D(X, Y, Z, 50, cmap='binary')
+ax.plot_surface(X, Y, y_test_sample_p, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.plot_surface(X, Y, y_predict_sample_p , rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.set_xlabel('Strikes')
+ax.set_ylabel('Maturities')
+ax.set_zlabel('Volatility');
+plt.show()
+
+#==============================================================================
 #smile
 sample_ind = 125
 X_sample = X_test_trafo[sample_ind]
