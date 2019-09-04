@@ -19,8 +19,10 @@ import scipy
 import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
-mat = scipy.io.loadmat('data_vola_1104_0005_09_11_30_240.mat')
-data = mat['data_vola_clear']
+#mat = scipy.io.loadmat('data_vola_4152_0005_09_11_30_240.mat')
+mat = scipy.io.loadmat('data_price_4152_0005_09_11_30_240.mat')
+#data = mat['data_vola_clear']
+data = mat['data_price_clear']
 #######
 
 #data = np.load('data_test_small_new1.npy')
@@ -200,7 +202,7 @@ plt.show()
 
 #==============================================================================
 #smile
-sample_ind = 12
+sample_ind = 13
 X_sample = X_test_trafo[sample_ind]
 y_sample = y_test[sample_ind]
 #print(scale.inverse_transform(y_sample))
@@ -277,7 +279,7 @@ Timing=[]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
-n = 100
+n = 500
 for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
