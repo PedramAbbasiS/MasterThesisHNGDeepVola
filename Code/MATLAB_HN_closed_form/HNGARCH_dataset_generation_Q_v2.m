@@ -2,20 +2,20 @@ clearvars -except params_risk_neutral params_risk_neutral_no
 close all;
 %rng('default')
 %Maturity = [30, 60, 90, 120, 150];%, 180, 210, 240];%, 270, 300, 330, 360];
-Maturity = 20:30:240;
+Maturity = 30:30:240;
 %K = 0.9:0.025:1.1;
 S = 1;
-K = 0.8:0.025:1.3;
+K = 0.875:0.025:1.125;
 K = K*S;
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 r = 0.005;
-Nsim = 5 ;
+Nsim = 1300 ;
 scenario_data = zeros(Nsim, 7+Nstrikes*Nmaturities);
 fprintf('%s','Generatiting Prices. Progress: 0%')
 for i = 1:Nsim
     price = -ones(Nmaturities,Nstrikes);
-    while any(any(price < 0)) || any(any(price > 1.5*(max(K)-S)))
+    while any(any(price < 0)) || any(any(price > 1.5*(S-min(K))))
         a = 1;
         b = 1;
         g = 1;
@@ -23,54 +23,54 @@ for i = 1:Nsim
             %%a = 1.0e-7 + (1.5e-6-1.0e-7).*rand(1,1);
             %a = 1.0e-6 + (1.5e-4-1.0e-6).*rand(1,1);
             %a= 1.51e-6;
-            a= 1.5e-6+rand(1,1)*(0.02e-6);
+            %a= 1.5e-6+rand(1,1)*(0.02e-6);
             %b = .57 + (.70-.57).*rand(1,1);
             %b=0.662;
-            b=0.66+rand(1,1)*0.004;
+            %b=0.66+rand(1,1)*0.004;
             %g =sqrt((rand(1,1)*(0.999-0.75)+0.75-b)/a);%
             %g=450 + (500-450).*rand(1,1);
             %g=480 + (550-480).*rand(1,1);
             %b= rand(1,1)*(0.999999-0.7)+0.75-a*g^2;
             %g = 464;
-            g =464+rand(1,1);
+            %g =464+rand(1,1);
             % 95% quantil mit h(0) optimierung
             %a = 1.08e-8 + (2.35e-6-1.08e-8).*rand(1,1);
             %b = .43 + (.97-.43).*rand(1,1);
             %g = 453 + (477-453).*rand(1,1);
             % 95% quantil ohne h(0) optimierung
-            %a = 5.8e-7 + (1.4e-6-5.8e-7).*rand(1,1);
-            %b = .43 + (.75-.43).*rand(1,1);
-            %g = 441 + (590-441).*rand(1,1);
-            disp(a*g^2+b)
+            a = 5.8e-7 + (1.4e-6-5.8e-7).*rand(1,1);
+            b = .43 + (.75-.43).*rand(1,1);
+            g = 441 + (590-441).*rand(1,1);
+            %disp(a*g^2+b)
         end
         %w = (15+(20-15)*rand(1,1))*(5.5e-7 + (1e-6-5.5e-7).*rand(1,1));
         %w = 4.29e-7;
-        w = 4.2e-7+rand(1,1)*(0.2e-7);
+        %w = 4.2e-7+rand(1,1)*(0.2e-7);
         %Sig_ = 1e-7 + (1e-3-1e-7).*rand(1,1);
         % 95% quantil mit h(0) optimierung
         %w = 1.6e-6 + (3.2e-6-1.6e-6).*rand(1,1);
         %Sig_ = 4.5e-5 + (1e-3-4.5e-5).*rand(1,1);
         % 95% quantil ohne h(0) optimierung
-        %w = 4.1e-7 + (2.9e-6-4.1e-7).*rand(1,1);
+        w = (4.1e-7 + (2.9e-6-4.1e-7).*rand(1,1));
         %Sig_ = 0.3^2/252;
         %w=Sig_*(1-b-a*g^2)-a;
-        var=0;
-        Sig_ =7*(w+a)/(1-b-a*g^2)*(1-var+2*var*rand(1,1));
+        var=0.1;
+        Sig_ =8*(w+a)/(1-b-a*g^2)*(1-var+2*var*rand(1,1));
         %Sig_= (w+a)*100;
         lam = 0.0;
         for t = 1:Nmaturities
             for k = Nstrikes:-1:1
                 price(t,k)= HestonNandi(S,K(k),Sig_,Maturity(t),r/365,w,a,b,g,lam);
-                if any(any(price < 0)) || any(any(price > 1.5*(max(K)-S)))
+                if any(any(price < 0)) || any(any(price > 1.5*(S-min(K))))
                     continue
                 end
             end
-            if any(any(price < 0)) || any(any(price > 1.5*(max(K)-S)))
+            if any(any(price < 0)) || any(any(price > 1.5*(S-min(K))))
                 continue
             end
         end
-        disp([min(min(price)),max(max(price))])
-        if any(any(price < 0)) || any(any(price > 1.5*(max(K)-S)))
+        %disp([min(min(price)),max(max(price))])
+        if any(any(price < 0)) || any(any(price > 1.5*(S-min(K))))
             continue
         end
         
@@ -130,7 +130,9 @@ end
 %
 figure
 [X,Y] = meshgrid(Maturity,K);
-surf(X,Y,reshape(data_vola_clear(end,6:end),size(price_new)));
+for i = 1:8
+    surf(X,Y,reshape(data_vola_clear(i,6:end),size(price_new)));hold on
+end
 
 %zlim([0,0.5])
 save(strcat('data_price_',num2str(length(data_price_clear)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity))),'data_price_clear')
