@@ -19,20 +19,20 @@ import scipy
 import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
-mat = scipy.io.loadmat('data_vola_mle.mat')
-data = mat['data_vola']
+mat = scipy.io.loadmat('data_v5_1000_new')
+data = mat['data']
 #######
 
 #data = np.load('data_test_small_new1.npy')
 Nparameters = 5
 #maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
-maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
-strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
+maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
+strikes = np.array([0.75, 0.775, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1, 1.025, 1.05, 1.075, 1.1, 1.125, 1.15, 1.175, 1.2, 1.225, 1.25])
 #strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
-yy=data[:,Nparameters:]
+yy=data[:,Nparameters+1:]
 #yy=data[:,Nparameters:-13*4]
 #setA = {i for i in range(104)}
 #setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
@@ -198,7 +198,7 @@ plt.show()
 
 #==============================================================================
 #smile
-sample_ind = 12
+sample_ind = 14
 X_sample = X_test_trafo[sample_ind]
 y_sample = y_test[sample_ind]
 #print(scale.inverse_transform(y_sample))
@@ -275,7 +275,7 @@ Timing=[]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
-n = 500
+n = 60
 for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
