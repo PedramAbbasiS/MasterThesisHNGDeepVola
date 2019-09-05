@@ -19,7 +19,7 @@ import scipy
 import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
-mat = scipy.io.loadmat('data_v5_1000_new')
+mat = scipy.io.loadmat('data_price_w20_1000_08_12_00025.mat')
 data = mat['data']
 #######
 
@@ -27,7 +27,8 @@ data = mat['data']
 Nparameters = 5
 #maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
 maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
-strikes = np.array([0.75, 0.775, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1, 1.025, 1.05, 1.075, 1.1, 1.125, 1.15, 1.175, 1.2, 1.225, 1.25])
+#strikes = np.array([0.7, 0.725,0.75, 0.775, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1, 1.025, 1.05, 1.075, 1.1, 1.125, 1.15, 1.175, 1.2, 1.225, 1.25, 1.275, 1.3])
+strikes = np.array([0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1, 1.025, 1.05, 1.075, 1.1, 1.125, 1.15, 1.175, 1.2])
 #strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
@@ -98,16 +99,16 @@ def root_relative_mean_squared_error(y_true, y_pred):
         
 NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
-        epochs = 200, verbose = True, shuffle=1)
+        epochs = 100, verbose = True, shuffle=1)
 #NN1.save_weights('NN_HNGarch_weights.h5')
 
 
-#test = yinversetransform(NN1.predict(X_test_trafo))
-#y_test_trans = yinversetransform(y_test_trafo)
-#error = np.abs((test - y_test_trans))/np.abs(y_test_trans)
-#error1 = np.zeros((len(error[0,:])))
-#for i in range(len(error[0,:])):
-#    error1[i] = np.mean(error[:,i])
+test = yinversetransform(NN1.predict(X_test_trafo))
+y_test_trans = yinversetransform(y_test_trafo)
+error = np.abs((test - y_test_trans))/np.abs(y_test_trans)
+error1 = np.zeros((len(error[0,:])))
+for i in range(len(error[0,:])):
+    error1[i] = np.mean(error[:,i])
     
 #==============================================================================
 #error plots
@@ -210,7 +211,7 @@ for i in range(Nmaturities):
     
     plt.plot(np.log(strikes/S0),y_sample[i*Nstrikes:(i+1)*Nstrikes],'b',label="Input data")
     plt.plot(np.log(strikes/S0),prediction[i*Nstrikes:(i+1)*Nstrikes],'--r',label=" NN Approx")
-    #plt.ylim(0.22, 0.26)
+    #plt.ylim(0.43, 0.49)
     
     plt.title("Maturity=%1.2f "%maturities[i])
     plt.xlabel("log-moneyness")
