@@ -1,4 +1,11 @@
 %% minimizer
+% omega = par0(1);
+% alpha = par0(2);
+% beta = par0(3);
+% gamma = par0(4);
+% lambda = par0(5);
+% h = par0(6);
+
 %% data
 data = load('SP500_data.txt');
 %idx = (data(:,2)==2012);
