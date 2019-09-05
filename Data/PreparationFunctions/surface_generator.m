@@ -1,4 +1,4 @@
-function surface = surface_generator(year,stock_ind,Strikes,Maturity,path,bound,plot,vecormat,saver,volaprice)
+function surface = surface_generator(year,stock_ind,Strikes,Maturity,path,bound,plot,vecormat,saver,volaprice,method)
 % Function smooths a volatility surface of data points to a given grid 
 % Input: 
 %   year:       int             -   year of data 
@@ -31,7 +31,7 @@ x = data(:,1);
 y = data(:,2);
 z = data(:,3);
 [X,Y] = meshgrid(Maturity,Strikes);
-surface_data = griddata(x,y,z,X,Y);
+surface_data = griddata(x,y,z,X,Y,method);
 
 if vecormat
     surface = reshape(surface_data,[1,length(Maturity)*length(Strikes)]);
