@@ -5,12 +5,12 @@ close all;
 Maturity = 30:30:240;
 %K = 0.9:0.025:1.1;
 S = 1;
-K = 0.875:0.025:1.125;
+K = 0.9:0.02:1.1;
 K = K*S;
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 r = 0.005;
-Nsim = 1300 ;
+Nsim = 1400 ;
 scenario_data = zeros(Nsim, 7+Nstrikes*Nmaturities);
 fprintf('%s','Generatiting Prices. Progress: 0%')
 for i = 1:Nsim
