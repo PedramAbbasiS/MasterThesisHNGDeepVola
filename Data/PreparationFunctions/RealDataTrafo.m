@@ -1,10 +1,12 @@
-%function surface = realdatasurface(year,stock_ind,path)
+%function surface_generator(year,stock_ind,Strikes,Maturity,path,bound,plot,vecormat,saver,volaprice,method)
 close all;
 path = '/Users/User/Documents/GitHub/SeminarOptions/Data/Datasets';
 %path ='/Users/Lukas/Documents/GitHub/SeminarOptions/Data/Datasets';
 stock_ind = 'SP500';
-year = 2013;
-Strikes = 0.8:0.025:1.2;
+Strikes = 0.9:0.02:1.1;
 Maturity = 30:30:240;
 bound =[100,100];
-surface = surface_generator(year,stock_ind,Strikes,Maturity,path,bound,1,0,1,0,'linear');
+for year = 2010:2015
+    surface = surface_generator(year,stock_ind,Strikes,Maturity,path,bound,1,1,1,0,'linear');
+end
+log_returns= log(1+SP500_date_prices_returns(3,:));

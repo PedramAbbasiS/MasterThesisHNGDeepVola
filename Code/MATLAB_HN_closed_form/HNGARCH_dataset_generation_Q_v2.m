@@ -10,7 +10,7 @@ K = K*S;
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 r = 0.005;
-Nsim = 1400 ;
+Nsim = 13500 ;
 scenario_data = zeros(Nsim, 7+Nstrikes*Nmaturities);
 fprintf('%s','Generatiting Prices. Progress: 0%')
 for i = 1:Nsim
