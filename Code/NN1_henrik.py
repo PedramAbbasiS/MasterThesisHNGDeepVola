@@ -279,6 +279,8 @@ solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
 n = X_test.shape[0]
+
+
 for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
@@ -294,7 +296,6 @@ for i in range(n):
     end= time.clock()
     solutions=myinverse(I.x)
     times=end-start
-    
     Approx.append(np.copy(solutions))
     Timing.append(np.copy(times))
 LMParameters=[Approx[i] for i in range(len(Approx))]
@@ -329,12 +330,33 @@ plt.show()
 
 #==============================================================================
 #RMSE plot
+def bs_call(S, K, T, r, sigma):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    d2 = (np.log(S / K) + (r - 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    call = (S * scipy.stats.norm.cdf(d1, 0.0, 1.0) - K * np.exp(-r * T) * scipy.stats.norm.cdf(d2, 0.0, 1.0))
+    return call
+
 RMSE_opt = np.zeros(n)
+RMSE_bs = np.zeros(n)
+bs_prices = np.zeros((n,Nmaturities*Nstrikes))
 Y = len(y_test[0,:])
 for i in range(n):
     Y = y_test[i,:]
     Y_pred = yinversetransform(NN1.predict(myscale(LMParameters[i]).reshape(1,Nparameters))[0])
     RMSE_opt[i] = np.sqrt(np.mean((Y-Y_pred)**2))
+    bs = np.zeros((Nmaturities,Nstrikes))
+    for t in range(Nmaturities):
+        for k in range(Nstrikes):
+            bs[t,k] = bs_call(1,strikes[k],maturities[t]/252,0.005,np.sqrt(252*LMParameters[i][-1]))
+    bs_prices[i,:] = bs.T.reshape((1,Nmaturities*Nstrikes))
+    RMSE_bs[i] = np.sqrt(np.mean((Y-bs_prices[i,:])**2))
+    
+fig =plt.figure(figsize=(12,8)) 
+plt.plot(RMSE_opt)
+plt.yscale('log')
+plt.plot(RMSE_bs)
+plt.yscale('log')
+    
 fig=plt.figure(figsize=(12,8))
 plt.plot(RMSE_opt,'b*')
 plt.title("RMSE of optimal parameters",fontsize=20)

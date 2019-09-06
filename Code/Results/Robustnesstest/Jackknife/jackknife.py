@@ -88,12 +88,12 @@ def Jacobian(x,sample_ind):
     return 2*np.sum((NN1.predict(x.reshape(1,Nparameters))[0]-y_test_trafo[sample_ind])*NeuralNetworkGradient(x),axis=1)
 
 ###############################################################################
+#plt.close("all")
 
 #Data Import
 import scipy.io
 mat = scipy.io.loadmat('data_price_mle_1264_0005_09_11_30_240.mat')
 data = mat['data_price_clear']
-
 #Data Preperation
 Nparameters = 5
 S0=1.
