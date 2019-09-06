@@ -20,7 +20,7 @@ import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
 #mat = scipy.io.loadmat('data_vola_4152_0005_09_11_30_240.mat')
-mat = scipy.io.loadmat('data_price_4152_0005_09_11_30_240.mat')
+mat = scipy.io.loadmat('data_price_895_0005_0875_1125_30_240.mat')
 #data = mat['data_vola_clear']
 data = mat['data_price_clear']
 #######
@@ -31,7 +31,7 @@ maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
 #maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
 #strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
 #strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
-strikes = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
+strikes = np.array([0.875,0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1,1.125])
 
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
@@ -103,7 +103,7 @@ def root_relative_mean_squared_error(y_true, y_pred):
 NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 200, verbose = True, shuffle=1)
-#NN1.save_weights('NN_HNGarch_weights.h5')
+NN1.save_weights('NN_HNGarch_weights.h5')
 
 
 #test = yinversetransform(NN1.predict(X_test_trafo))
@@ -279,7 +279,7 @@ Timing=[]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
-n = 500
+n = 70
 for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
