@@ -19,7 +19,7 @@ import scipy
 import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
-mat = scipy.io.loadmat('data_price_w20_1000_08_12_00025.mat')
+mat = scipy.io.loadmat('data_vola_g_small_1000_08_12_0025.mat')
 data = mat['data']
 #######
 
@@ -177,29 +177,37 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
-fig = plt.figure()
-ax = fig.gca(projection='3d')
 
-# Make data.
-X = strikes
+fig = plt.figure(figsize=(18, 5))
+ax = fig.add_subplot(1, 2, 1, projection='3d')
+X = [np.log(strikes[i]) for i in range(Nstrikes)]
 Y = maturities
 X, Y = np.meshgrid(X, Y)
 
-
-#ax.contour3D(X, Y, Z, 50, cmap='binary')
 ax.plot_surface(X, Y, y_test_sample_p, rstride=1, cstride=1,
                 cmap='viridis', edgecolor='none')
-ax.plot_surface(X, Y, y_predict_sample_p , rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.set_xlabel('Strikes')
+ax.set_xlabel('log-moneyness')
 ax.set_ylabel('Maturities')
 ax.set_zlabel('Volatility');
+plt.title("Heston-Nandi implied volatility surface", fontsize=20)
+
+ax = fig.add_subplot(1, 2, 2, projection='3d')
+surf = ax.plot_surface(X, Y, y_predict_sample_p , rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.set_xlabel('log-moneyness')
+ax.set_ylabel('Maturities')
+ax.set_zlabel('Volatility');
+plt.title('Neural Network prediction',fontsize=20)
+fig.colorbar(surf, shrink=0.5, aspect=10)
+
+plt.tight_layout()
+plt.savefig('vola_surface.png', dpi=300)
 plt.show()
 
 
 #==============================================================================
 #smile
-sample_ind = 14
+sample_ind = 19
 X_sample = X_test_trafo[sample_ind]
 y_sample = y_test[sample_ind]
 #print(scale.inverse_transform(y_sample))
@@ -211,7 +219,7 @@ for i in range(Nmaturities):
     
     plt.plot(np.log(strikes/S0),y_sample[i*Nstrikes:(i+1)*Nstrikes],'b',label="Input data")
     plt.plot(np.log(strikes/S0),prediction[i*Nstrikes:(i+1)*Nstrikes],'--r',label=" NN Approx")
-    #plt.ylim(0.43, 0.49)
+    plt.ylim(0.43, 0.48)
     
     plt.title("Maturity=%1.2f "%maturities[i])
     plt.xlabel("log-moneyness")
@@ -395,6 +403,7 @@ plt.show()
 
 #==============================================================================
 #real data
+"""
 sp500_mat = scipy.io.loadmat('surface_sp500_new.mat')
 surface = sp500_mat['vector_surface']
 surface_trafo = ytransform(surface,surface,surface)[2]
@@ -415,3 +424,4 @@ err_real_mean = np.mean(100*np.abs((surface-Y_pred_real)/surface),axis = 1)
 err_real = (100*np.abs((surface-Y_pred_real)/surface)).reshape((Nmaturities, Nstrikes))
 diff = (Y_pred_real - surface).reshape((Nmaturities, Nstrikes))
 np.savetxt("SP500_pred_NN.txt",Y_pred_real)
+"""

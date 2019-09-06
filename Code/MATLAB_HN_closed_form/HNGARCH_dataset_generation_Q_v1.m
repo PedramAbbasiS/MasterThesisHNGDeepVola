@@ -1,19 +1,18 @@
 clearvars
-surface = load('surfaceprice2013SP500.mat');
-surface1 = surface.surface;
+%surface = load('surfaceprice2013SP500.mat');
+%surface1 = surface.surface;
 Maturity = [30, 60, 90, 120, 150, 180, 210, 240];
 K = 0.8:0.025:1.2; 
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 S = 1;
-r = .05/252;
+r = .005/252;
 j = 0;
 l = 0;
 Sig_=.04/252;
 Nsim = 1000;
 scenario_data = zeros(Nsim, 6+Nstrikes*Nmaturities);
 for i = 1:Nsim
-    %disp(i)
     %j = j+1;
     if ismember(i,floor(Nsim*[0.025:0.025:1]))
         disp(strcat(num2str(i/Nsim*100),"%"))
@@ -29,9 +28,12 @@ for i = 1:Nsim
         b = 1;
         g = 1;
         while (b+a*g^2 >= 1) || (b+a*g^2 <= 0.85)
-            a = 1.0e-6 + (1.5e-6-1.0e-6).*rand(1,1);
-            b = .57 + (.70-.57).*rand(1,1);
-            g = 450 + (500-450).*rand(1,1);
+            a = (5.0e-6 + (50*1.5e-6-5.0e-6).*rand(1,1));
+            b = (.851 + (.98-.851).*rand(1,1));
+            g = (1 + (4-1).*rand(1,1));
+            %a = 1.0e-6 + (1.5e-6-1.0e-6).*rand(1,1);
+            %b = .57 + (.70-.57).*rand(1,1);
+            %g = 450 + (500-450).*rand(1,1);
             %a= 3e-6 + (7e-6-3e-6).*rand(1,1);
             %b=(.8 + (.9-.8).*rand(1,1));
             %g= (145 + (155-145).*rand(1,1));
@@ -52,7 +54,8 @@ for i = 1:Nsim
             %b = .43 + (.75-.43).*rand(1,1);
             %g = 441 + (590-441).*rand(1,1);
         end
-        w = 20*(5.5e-7 + (1e-6-5.5e-7).*rand(1,1));
+        w = (5*5.5e-7 + (15e-6-5*5.5e-7).*rand(1,1));
+        %w = 20*(5.5e-7 + (1e-6-5.5e-7).*rand(1,1));
         Sig_ = (w+a)/(1-b-a*g^2);
         %w = .04/252 9*1e-7 + (1*1e-6 -9*1e-7).* rand(1,1); %6.86*1e-5; %7.55e-6 + (3.45e-4-7.55e-6).*rand(1,1);
          %*(.7 + (1.3-.7).*rand(1,1));
@@ -172,13 +175,13 @@ ksdensity(iv1(:,4))
 
 data = [scenario_data(:,1:6),iv];
 data = data(~any(isnan(data),2),:);
-save('data_vola_w20_1000_08_12_00025.mat', 'data')
+save('data_vola_g_small_1000_08_12_0025.mat', 'data')
 
 
 data = [scenario_data,iv];
 data = data(~any(isnan(data),2),:);
 data = data(:,1:6+Nstrikes*Nmaturities);
-save('data_price_w20_1000_08_12_00025.mat', 'data')
+save('data_price_g_small_1000_08_12_0025.mat', 'data')
 
 
 %re2 = zeros(Nsim,Nmaturities*Nstrikes);

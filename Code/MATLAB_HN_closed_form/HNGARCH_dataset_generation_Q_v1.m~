@@ -1,19 +1,18 @@
 clearvars
-surface = load('surfaceprice2013SP500.mat');
-surface1 = surface.surface;
+%surface = load('surfaceprice2013SP500.mat');
+%surface1 = surface.surface;
 Maturity = [30, 60, 90, 120, 150, 180, 210, 240];
 K = 0.8:0.025:1.2; 
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 S = 1;
-r = .05/252;
+r = .005/252;
 j = 0;
 l = 0;
 Sig_=.04/252;
 Nsim = 1000;
 scenario_data = zeros(Nsim, 6+Nstrikes*Nmaturities);
 for i = 1:Nsim
-    %disp(i)
     %j = j+1;
     if ismember(i,floor(Nsim*[0.025:0.025:1]))
         disp(strcat(num2str(i/Nsim*100),"%"))
@@ -172,13 +171,13 @@ ksdensity(iv1(:,4))
 
 data = [scenario_data(:,1:6),iv];
 data = data(~any(isnan(data),2),:);
-save('data_vola_g_small_1000_07_13_00025.mat', 'data')
+save('data_vola_w20_1000_08_12_00025.mat', 'data')
 
 
 data = [scenario_data,iv];
 data = data(~any(isnan(data),2),:);
 data = data(:,1:6+Nstrikes*Nmaturities);
-save('data_price_g_small_1000_07_13_00025.mat', 'data')
+save('data_price_w20_1000_08_12_00025.mat', 'data')
 
 
 %re2 = zeros(Nsim,Nmaturities*Nstrikes);
