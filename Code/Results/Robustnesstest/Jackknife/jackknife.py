@@ -91,14 +91,14 @@ def Jacobian(x,sample_ind):
 
 #Data Import
 import scipy.io
-mat = scipy.io.loadmat('data_price_895_0005_0875_1125_30_240.mat')
+mat = scipy.io.loadmat('data_price_mle_1264_0005_09_11_30_240.mat')
 data = mat['data_price_clear']
 
 #Data Preperation
 Nparameters = 5
 S0=1.
 maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
-strikes = np.array([0.875,0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1,1.125])
+strikes = np.array([0.9, 0.92, 0.94, 0.96, 0.98,1.0, 1.02, 1.04, 1.06, 1.08,1.1])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
@@ -106,13 +106,7 @@ yy=data[:,Nparameters:]
 X_train_Big, X_test, y_train_Big, y_test = train_test_split(xx, yy, test_size=0.15, random_state=42)
 #Neural Network
 keras.backend.set_floatx('float64')
-NN1 = Sequential()
-NN1.add(InputLayer(input_shape=(Nparameters,)))
-NN1.add(Dense(30, activation = 'elu'))
-NN1.add(Dense(30, activation = 'elu'))
-NN1.add(Dense(30, activation = 'elu'))
-NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
-NN1.summary()
+
 
 num_splits = 10
 runs = -1
@@ -139,6 +133,13 @@ for train_index, val_index in kf.split(X_train_Big,y_train_Big):
     X_test_trafo = np.array([myscale(x) for x in X_test])
 
     # neural network fit        
+    NN1 = Sequential()
+    NN1.add(InputLayer(input_shape=(Nparameters,)))
+    NN1.add(Dense(30, activation = 'elu'))
+    NN1.add(Dense(30, activation = 'elu'))
+    NN1.add(Dense(30, activation = 'elu'))
+    NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
+    #NN1.summary()
     NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
     NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
             epochs = 200, verbose = True, shuffle=1)
