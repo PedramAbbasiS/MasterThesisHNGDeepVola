@@ -19,7 +19,7 @@ import scipy
 import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
-mat = scipy.io.loadmat('data_vola_g_small_1000_08_12_0025.mat')
+mat = scipy.io.loadmat('data_price_w20_1000_09_11_002.mat')
 data = mat['data']
 #######
 
@@ -28,7 +28,8 @@ Nparameters = 5
 #maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
 maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
 #strikes = np.array([0.7, 0.725,0.75, 0.775, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1, 1.025, 1.05, 1.075, 1.1, 1.125, 1.15, 1.175, 1.2, 1.225, 1.25, 1.275, 1.3])
-strikes = np.array([0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1, 1.025, 1.05, 1.075, 1.1, 1.125, 1.15, 1.175, 1.2])
+#strikes = np.array([0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1, 1.025, 1.05, 1.075, 1.1, 1.125, 1.15, 1.175, 1.2])
+strikes = np.array([0.9, 0.92, 0.94, 0.96, 0.98, 1, 1.02, 1.04, 1.06, 1.08, 1.1])
 #strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
@@ -99,7 +100,7 @@ def root_relative_mean_squared_error(y_true, y_pred):
         
 NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
-        epochs = 100, verbose = True, shuffle=1)
+        epochs = 200, verbose = True, shuffle=1)
 #NN1.save_weights('NN_HNGarch_weights.h5')
 
 
@@ -156,7 +157,7 @@ plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.tight_layout()
-plt.savefig('HNG_NNErrors.png', dpi=300)
+#plt.savefig('HNG_NNErrors.png', dpi=300)
 plt.show()
 
 
@@ -201,7 +202,7 @@ plt.title('Neural Network prediction',fontsize=20)
 fig.colorbar(surf, shrink=0.5, aspect=10)
 
 plt.tight_layout()
-plt.savefig('vola_surface.png', dpi=300)
+#plt.savefig('vola_surface.png', dpi=300)
 plt.show()
 
 
@@ -328,7 +329,7 @@ for u in range(Nparameters):
 
     print("average= ",np.mean(average[u,:]))
 plt.tight_layout()
-plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
+#plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
 plt.show()
 
 
@@ -398,14 +399,13 @@ plt.tick_params(axis='both', which='minor', labelsize=17)
 plt.xticks(np.arange(0, 101, step=10))
 plt.grid()
 plt.tight_layout()
-plt.savefig('HNG_ErrorCDF.png', dpi=300)
+#plt.savefig('HNG_ErrorCDF.png', dpi=300)
 plt.show()
 
 #==============================================================================
 #real data
-"""
-sp500_mat = scipy.io.loadmat('surface_sp500_new.mat')
-surface = sp500_mat['vector_surface']
+sp500_mat = scipy.io.loadmat('surfaceprice2010SP500.mat')
+surface = sp500_mat['surface']
 surface_trafo = ytransform(surface,surface,surface)[2]
 def CostFuncLS_real(x):
     return (yinversetransform(NN1.predict(x.reshape(1,Nparameters))[0])-surface_trafo).T.flatten()
@@ -421,7 +421,53 @@ LMParameters_real=myinverse(I.x)
 Y_pred_real = yinversetransform(NN1.predict(myscale(LMParameters_real).reshape(1,Nparameters))[0])
 RMSE_opt_real = np.sqrt(np.mean((surface-Y_pred_real)**2))
 err_real_mean = np.mean(100*np.abs((surface-Y_pred_real)/surface),axis = 1)
+err_real_median = np.median(100*np.abs((surface-Y_pred_real)/surface),axis = 1)
 err_real = (100*np.abs((surface-Y_pred_real)/surface)).reshape((Nmaturities, Nstrikes))
 diff = (Y_pred_real - surface).reshape((Nmaturities, Nstrikes))
-np.savetxt("SP500_pred_NN.txt",Y_pred_real)
-"""
+#np.savetxt("SP500_pred_NN.txt",Y_pred_real)
+
+
+#black scholes
+bs_mat = scipy.io.loadmat('bs_prices.mat')
+bs_surface = bs_mat['bs'][0]
+RMSE_opt_real_bs = np.sqrt(np.mean((surface-bs_surface)**2))
+err_real_mean_bs = np.mean(100*np.abs((surface-bs_surface)/surface),axis = 1)
+err_real_median_bs = np.median(100*np.abs((surface-bs_surface)/surface),axis = 1)
+err_real = (100*np.abs((surface-bs_surface)/surface)).reshape((Nmaturities, Nstrikes))
+
+
+
+
+
+
+
+
+
+surfac_mat = np.reshape(surface, [Nmaturities, Nstrikes])
+pred_mat = np.reshape(Y_pred_real, [Nmaturities, Nstrikes])
+ 
+fig = plt.figure(figsize=(18, 5))
+ax = fig.add_subplot(1, 2, 1, projection='3d')
+X = [np.log(strikes[i]) for i in range(Nstrikes)]
+Y = maturities
+X, Y = np.meshgrid(X, Y)
+
+ax.plot_surface(X, Y, surfac_mat, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.set_xlabel('Strikes')
+ax.set_ylabel('Maturities')
+ax.set_zlabel('Price');
+plt.title("Real S&P 500 prices", fontsize=20)
+
+ax = fig.add_subplot(1, 2, 2, projection='3d')
+surf = ax.plot_surface(X, Y, pred_mat, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.set_xlabel('Stikes')
+ax.set_ylabel('Maturities')
+ax.set_zlabel('Price');
+plt.title('Neural Network prediction',fontsize=20)
+fig.colorbar(surf, shrink=0.5, aspect=10)
+
+plt.tight_layout()
+#plt.savefig('vola_surface.png', dpi=300)
+plt.show()
