@@ -10,7 +10,7 @@ K = K*S;
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 r = 0.005;
-Nsim = 13500 ;
+Nsim = 25000 ;
 scenario_data = zeros(Nsim, 7+Nstrikes*Nmaturities);
 fprintf('%s','Generatiting Prices. Progress: 0%')
 for i = 1:Nsim
@@ -38,9 +38,9 @@ for i = 1:Nsim
             %b = .43 + (.97-.43).*rand(1,1);
             %g = 453 + (477-453).*rand(1,1);
             % 95% quantil ohne h(0) optimierung
-            a = 5.8e-7 + (1.4e-6-5.8e-7).*rand(1,1);
-            b = .43 + (.75-.43).*rand(1,1);
-            g = 441 + (590-441).*rand(1,1);
+            a = 1.0e-6 + (1.5e-6-1.0e-6).*rand(1,1);
+            b = .57 + (.70-.57).*rand(1,1);
+            g = 450 + (500-450).*rand(1,1);
             %disp(a*g^2+b)
         end
         %w = (15+(20-15)*rand(1,1))*(5.5e-7 + (1e-6-5.5e-7).*rand(1,1));
@@ -51,12 +51,9 @@ for i = 1:Nsim
         %w = 1.6e-6 + (3.2e-6-1.6e-6).*rand(1,1);
         %Sig_ = 4.5e-5 + (1e-3-4.5e-5).*rand(1,1);
         % 95% quantil ohne h(0) optimierung
-        w = (4.1e-7 + (2.9e-6-4.1e-7).*rand(1,1));
-        %Sig_ = 0.3^2/252;
-        %w=Sig_*(1-b-a*g^2)-a;
-        var=0.1;
-        Sig_ =8*(w+a)/(1-b-a*g^2)*(1-var+2*var*rand(1,1));
-        %Sig_= (w+a)*100;
+        
+        w = 20*(5.5e-7 + (1e-6-5.5e-7).*rand(1,1));
+        Sig_ = (w+a)/(1-a*g^2-b);
         lam = 0.0;
         for t = 1:Nmaturities
             for k = Nstrikes:-1:1

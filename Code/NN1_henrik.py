@@ -20,11 +20,11 @@ import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
 #mat = scipy.io.loadmat('data_vola_4152_0005_09_11_30_240.mat')
-mat = scipy.io.loadmat('data_price_mle_1264_0005_09_11_30_240.mat')
+mat = scipy.io.loadmat('data_vola_24998_0005_09_11_30_240.mat')
 #data = mat['data_vola_clear']
-data = mat['data_price_clear']
+data = mat['data_vola_clear']
 #######
-
+data = data[:20000,:]
 #data = np.load('data_test_small_new1.npy')
 Nparameters = 5
 maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
@@ -279,7 +279,7 @@ solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
 n = X_test.shape[0]
-
+n=1000
 
 for i in range(n):
     disp=str(i+1)+"/5000"
