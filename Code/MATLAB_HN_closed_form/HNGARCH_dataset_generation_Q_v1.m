@@ -1,11 +1,11 @@
 clearvars
 Maturity = [30, 60, 90, 120, 150, 180, 210, 240];
-K = 0.8:0.025:1.2; 
+K = 0.9:0.02:1.1; 
 Nmaturities = length(Maturity);
 Nstrikes = length(K);
 S = 1;
 r = .005/252;
-Nsim = 22000;
+Nsim = 21000;
 scenario_data = zeros(Nsim, 6+Nstrikes*Nmaturities);
 for i = 1:Nsim
     if ismember(i,floor(Nsim*(0.025:0.025:1)))
@@ -17,11 +17,15 @@ for i = 1:Nsim
         b = 1;
         g = 1;
         while (b+a*g^2 >= 1) || (b+a*g^2 <= 0.85)
-            a = (5e-6 + (50*1.5e-6-5e-6).*rand(1,1));
-            b = (.851 + (.98-.851).*rand(1,1));
-            g = (1 + (4-1).*rand(1,1));
+            %a = (5e-6 + (50*1.5e-6-5e-6).*rand(1,1));
+            %b = (.851 + (.98-.851).*rand(1,1));
+            %g = (1 + (4-1).*rand(1,1));
+            a = (5.8e-7 + (1.4e-6-5.8e-7).*rand(1,1));
+            b = (.43 + (.75-.43).*rand(1,1));
+            g = (441 + (590-441).*rand(1,1));
         end
-        w = (5*5.5e-7 + (15e-6-5*5.5e-7).*rand(1,1));
+        %w = (5*5.5e-7 + (15e-6-5*5.5e-7).*rand(1,1));
+        w = 20*(4.1e-7 + (2.9e-6-4.1e-7).*rand(1,1));
         Sig_ = (w+a)/(1-b-a*g^2);
         lam = 0.0;
         for t = 1:Nmaturities
@@ -116,15 +120,15 @@ ksdensity(iv1(:,4))
 %zuschneiden!!!!!
 data = [scenario_data(:,1:6),iv];
 data = data(~any(isnan(data),2),:);
-data = data(1:20000,:);
-save('data_vola_g_small_20000_08_12_0025.mat', 'data')
+%data = data(1:20000,:);
+save('data_vola_w20_1000_08_12_0025.mat', 'data')
 
 
 data = [scenario_data,iv];
 data = data(~any(isnan(data),2),:);
 data = data(:,1:6+Nstrikes*Nmaturities);
-data = data(1:20000,:);
-save('data_price_g_small_20000_08_12_0025.mat', 'data')
+%data = data(1:20000,:);
+save('data_price_w20_1000_08_12_0025.mat', 'data')
 
 
 %re2 = zeros(Nsim,Nmaturities*Nstrikes);

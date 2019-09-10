@@ -19,7 +19,7 @@ import scipy
 import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
-mat = scipy.io.loadmat('data_price_w20_1000_09_11_002.mat')
+mat = scipy.io.loadmat('data_vola_24998_0005_09_11_30_240.mat')
 data = mat['data']
 #######
 
@@ -34,7 +34,7 @@ strikes = np.array([0.9, 0.92, 0.94, 0.96, 0.98, 1, 1.02, 1.04, 1.06, 1.08, 1.1]
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
-yy=data[:,Nparameters+1:]
+yy=data[:,Nparameters:]
 #yy=data[:,Nparameters:-13*4]
 #setA = {i for i in range(104)}
 #setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
@@ -116,13 +116,12 @@ for i in range(len(error[0,:])):
 S0=1.
 y_test_re = yinversetransform(y_test_trafo)
 prediction=[yinversetransform(NN1.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
-plt.figure(1,figsize=(14,4))
+plt.figure(1,figsize=(21,6))
 ax=plt.subplot(1,3,1)
 err = np.mean(100*np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Average relative error",fontsize=15,y=1.04)
 plt.imshow(err.reshape(Nmaturities,Nstrikes))
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.colorbar(format=mtick.PercentFormatter())
 
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
 ax.set_xticklabels(strikes)
@@ -130,6 +129,7 @@ ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
 ax.set_yticklabels(maturities)
 plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
+plt.colorbar(format=mtick.PercentFormatter())
 
 ax=plt.subplot(1,3,2)
 err = 100*np.std(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
@@ -157,7 +157,7 @@ plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.tight_layout()
-#plt.savefig('HNG_NNErrors.png', dpi=300)
+plt.savefig('HNG_NNErrors.png', dpi=300)
 plt.show()
 
 
@@ -190,6 +190,7 @@ ax.plot_surface(X, Y, y_test_sample_p, rstride=1, cstride=1,
 ax.set_xlabel('log-moneyness')
 ax.set_ylabel('Maturities')
 ax.set_zlabel('Volatility');
+
 plt.title("Heston-Nandi implied volatility surface", fontsize=20)
 
 ax = fig.add_subplot(1, 2, 2, projection='3d')
@@ -198,17 +199,18 @@ surf = ax.plot_surface(X, Y, y_predict_sample_p , rstride=1, cstride=1,
 ax.set_xlabel('log-moneyness')
 ax.set_ylabel('Maturities')
 ax.set_zlabel('Volatility');
+#fig.colorbar(surf, shrink=0.5, aspect=10)
 plt.title('Neural Network prediction',fontsize=20)
-fig.colorbar(surf, shrink=0.5, aspect=10)
+
 
 plt.tight_layout()
-#plt.savefig('vola_surface.png', dpi=300)
+plt.savefig('vola_surface.png', dpi=300)
 plt.show()
 
 
 #==============================================================================
 #smile
-sample_ind = 19
+sample_ind = 20
 X_sample = X_test_trafo[sample_ind]
 y_sample = y_test[sample_ind]
 #print(scale.inverse_transform(y_sample))
@@ -220,7 +222,7 @@ for i in range(Nmaturities):
     
     plt.plot(np.log(strikes/S0),y_sample[i*Nstrikes:(i+1)*Nstrikes],'b',label="Input data")
     plt.plot(np.log(strikes/S0),prediction[i*Nstrikes:(i+1)*Nstrikes],'--r',label=" NN Approx")
-    plt.ylim(0.43, 0.48)
+    #plt.ylim(0.29, 0.32)
     
     plt.title("Maturity=%1.2f "%maturities[i])
     plt.xlabel("log-moneyness")
@@ -285,7 +287,7 @@ Timing=[]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
-n = 60
+n = 100 #1000
 for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
@@ -315,9 +317,14 @@ fig=plt.figure(figsize=(12,8))
 for u in range(Nparameters):
     ax=plt.subplot(2,3,u+1)
     for i in range(n):
-        
         X=X_test[i][u]
-        plt.plot(X,100*np.abs(LMParameters[i][u]-X)/np.abs(X),'b*')
+        if X < .2:
+            plt.plot(X,100*np.abs(LMParameters[i][u]-X)/np.abs(X),'b*')
+            #plt.ticklabel_format(useOffset=100)
+            plt.ticklabel_format(axis='x', style='sci', scilimits=(-3, 3),
+                       useOffset=False)
+        else:
+            plt.plot(X,100*np.abs(LMParameters[i][u]-X)/np.abs(X),'b*')
         average[u,i]=np.abs(LMParameters[i][u]-X)/np.abs(X)
     plt.title(titles[u],fontsize=20)
     plt.ylabel('relative Error',fontsize=15)
@@ -329,7 +336,7 @@ for u in range(Nparameters):
 
     print("average= ",np.mean(average[u,:]))
 plt.tight_layout()
-#plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
+plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
 plt.show()
 
 
@@ -399,11 +406,12 @@ plt.tick_params(axis='both', which='minor', labelsize=17)
 plt.xticks(np.arange(0, 101, step=10))
 plt.grid()
 plt.tight_layout()
-#plt.savefig('HNG_ErrorCDF.png', dpi=300)
+plt.savefig('HNG_ErrorCDF.png', dpi=300)
 plt.show()
 
 #==============================================================================
 #real data
+"""
 sp500_mat = scipy.io.loadmat('surfaceprice2010SP500.mat')
 surface = sp500_mat['surface']
 surface_trafo = ytransform(surface,surface,surface)[2]
@@ -471,3 +479,4 @@ fig.colorbar(surf, shrink=0.5, aspect=10)
 plt.tight_layout()
 #plt.savefig('vola_surface.png', dpi=300)
 plt.show()
+"""
