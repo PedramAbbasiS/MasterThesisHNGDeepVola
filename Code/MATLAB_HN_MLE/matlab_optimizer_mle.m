@@ -10,13 +10,13 @@
 data = load('SP500_data.txt');
 %idx = (data(:,2)==2012);
 %logret = data(idx,4);
-r = 0.01/252;
+r = 0.005/252;
 par0 = [2e-6,1e-6,0.67,450,13];
 par0_h0 = [2e-6,1e-6,0.67,450,13,1e-5];
 lb = [1e-8,0,0,-1000,-100];
-lb_h0 = [1e-8,0,0,-1000,-100,1e-8];
-ub =[1,1,1-1e-8,2000,100];
-ub_h0 =[1,1,1-1e-8,2000,100,1];
+lb_h0 = [1e-8,0,0,-1000,-1000,-100];
+ub =[1,1,100,2000,100];
+ub_h0 =[1,1,100,2000,100,100];
 A = [];
 b = [];
 Aeq = [];
@@ -26,8 +26,7 @@ mat_par = zeros(Nsim,6);
 mat_par_h0 = zeros(Nsim,6);
 mat_ll = zeros(Nsim,1);
 mat_ll_h0 = zeros(Nsim,1);
-% first date 14 jan 2010 end date 30 dec 2015
-win_len = 1750;
+win_len = 750;
 for i=1:Nsim
     logret = data(end-Nsim-win_len+1+i:end-Nsim+i,4);
     f_min = @(par) ll_hng_n(par,logret,r);
@@ -45,9 +44,9 @@ for i=1:Nsim
     mat_par_h0(i,:) = params_h0;
     mat_ll(i) = value;
     mat_ll_h0(i) = value_h0;
-    if ismember(i,floor(Nsim*[0.025:0.025:1]))
-        disp(strcat(num2str(i/Nsim*100),"%"))
-    end
+    %if ismember(i,floor(Nsim*[0.025:0.025:1]))
+    %    disp(strcat(num2str(i/Nsim*100),"%"))
+    %end
 end
 %%
 quant_70_h0 = [quantile(mat_par_h0,0.15,1);quantile(mat_par_h0,0.85,1)];
@@ -79,3 +78,19 @@ fun_CI_h0 = @(per) [quantile(mat_par_h0,(1-per)/2,1);quantile(mat_par_h0,(1+per)
 % save('quant_99','quant_99')
 % save('alltogher_matlab','quant_70','quant_80','quant_90','quant_95','quant_99',...
 %     'quant_70_h0','quant_80_h0','quant_90_h0','quant_95_h0','quant_99_h0','mat_par','mat_par_h0')
+
+
+%%
+figure
+subplot(1,4,1)
+plot(mat_par(:,1));
+title('omega')
+subplot(1,4,2)
+plot(mat_par(:,2));
+title('alpha')
+subplot(1,4,3)
+plot(mat_par(:,3));
+title('beta')
+subplot(1,4,4)
+plot(mat_par(:,4));
+title('gamma')

@@ -17,12 +17,10 @@ import scipy
 
 ###matlab
 import scipy.io
-#mat = scipy.io.loadmat('data_v2_2000_new.mat')
-#data = mat['data']
 #mat = scipy.io.loadmat('data_vola_4152_0005_09_11_30_240.mat')
-mat = scipy.io.loadmat('data_vola_24998_0005_09_11_30_240.mat')
+mat = scipy.io.loadmat('data_price_24998_0005_09_11_30_240.mat')
 #data = mat['data_vola_clear']
-data = mat['data_vola_clear']
+data = mat['data_price_clear']
 #######
 data = data[:20000,:]
 #data = np.load('data_test_small_new1.npy')
@@ -103,7 +101,7 @@ def root_relative_mean_squared_error(y_true, y_pred):
 NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 200, verbose = True, shuffle=1)
-NN1.save_weights('NN_HNGarch_weights.h5')
+#NN1.save_weights('NN_HNGarch_weights.h5')
 
 
 #test = yinversetransform(NN1.predict(X_test_trafo))
@@ -279,10 +277,10 @@ solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
 n = X_test.shape[0]
-n=1000
+#n=1000
 
 for i in range(n):
-    disp=str(i+1)+"/5000"
+    disp=str(i+1)+"/"+str(n)
     print (disp,end="\r")
     #L-BFGS-B
     #start= time.clock()
@@ -356,6 +354,11 @@ plt.plot(RMSE_opt)
 plt.yscale('log')
 plt.plot(RMSE_bs)
 plt.yscale('log')
+plt.legend(['Neural Net','Black-Scholes'],fontsize=17)
+plt.ylabel('RMSE')
+plt.xlabel('Scenario')
+plt.title("RMSE of optimal parameters",fontsize=20)
+plt.savefig('RMSE_BS_Net.png', dpi=300)
     
 fig=plt.figure(figsize=(12,8))
 plt.plot(RMSE_opt,'b*')
