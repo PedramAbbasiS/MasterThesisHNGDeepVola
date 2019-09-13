@@ -18,23 +18,25 @@ import scipy
 ###matlab
 import scipy.io
 #mat = scipy.io.loadmat('data_vola_4152_0005_09_11_30_240.mat')
-mat = scipy.io.loadmat('data_price_24998_0005_09_11_30_240.mat')
+#mat = scipy.io.loadmat('data_price_20000_0005_09_11_30_240.mat')
+mat = scipy.io.loadmat('data_price_g_small_20000_08_12_0025.mat')
 #data = mat['data_vola_clear']
-data = mat['data_price_clear']
+#data = mat['data_price_clear']
+data = mat['data']
 #######
-data = data[:20000,:]
+#data = data[:20000,:]
 #data = np.load('data_test_small_new1.npy')
 Nparameters = 5
 maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
 #maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
 #strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
 #strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
-#strikes = np.array([0.875,0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1,1.125])
-strikes = np.array([0.9, 0.92, 0.94, 0.96, 0.98,1.0, 1.02, 1.04, 1.06, 1.08,1.1])
+strikes = np.array([0.8,0.825,0.85,0.875,0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1,1.125,1.15,1.175,1.2])
+#strikes = np.array([0.9, 0.92, 0.94, 0.96, 0.98,1.0, 1.02, 1.04, 1.06, 1.08,1.1])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
-yy=data[:,Nparameters:]
+yy=data[:,Nparameters+1:]
 #yy=data[:,Nparameters:-13*4]
 #setA = {i for i in range(104)}
 #setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
