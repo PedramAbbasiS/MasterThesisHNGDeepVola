@@ -92,8 +92,9 @@ def Jacobian(x,sample_ind):
 
 #Data Import
 import scipy.io
-mat = scipy.io.loadmat('data_price_mle_1264_0005_09_11_30_240.mat')
-data = mat['data_price_clear']
+mat = scipy.io.loadmat('data_vola_24998_0005_09_11_30_240.mat')
+data = mat['data_vola_clear']
+data = data[:20000,:]
 #Data Preperation
 Nparameters = 5
 S0=1.
@@ -103,95 +104,128 @@ Nstrikes = len(strikes)
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
 yy=data[:,Nparameters:]
-X_train_Big, X_test, y_train_Big, y_test = train_test_split(xx, yy, test_size=0.15, random_state=42)
+nsims=20
+err = np.zeros((3,Nstrikes*Nmaturities))
+err2 = np.zeros((nsims,3,Nstrikes*Nmaturities))
+
+X_train_Big, X_test, y_train_Big, y_test = train_test_split(xx, yy, test_size=0.15,random_state = None)
+X_train, X_val, y_train, y_val = train_test_split(X_train_Big, y_train_Big, test_size=0.15,random_state = None)
+[y_train_trafo, y_val_trafo, y_test_trafo]=ytransform(y_train, y_val, y_test)
+scale=StandardScaler()
+y_train_transform = scale.fit_transform(y_train)
+y_val_transform = scale.transform(y_val)
+y_test_transform = scale.transform(y_test)
+[y_train_trafo, y_val_trafo, y_test_trafo]=ytransform(y_train, y_val, y_test)
+ub=np.amax(xx, axis=0)
+lb=np.amin(xx, axis=0)
+X_train_trafo = np.array([myscale(x) for x in X_train])
+X_val_trafo = np.array([myscale(x) for x in X_val]) 
+X_test_trafo = np.array([myscale(x) for x in X_test])
+y_test_re = yinversetransform(y_test_trafo)
+from random import sample 
+  
+
 #Neural Network
 keras.backend.set_floatx('float64')
 
 
-num_splits = 10
-runs = -1
-kf = KFold(n_splits=num_splits,random_state=42,shuffle=True)
-err = np.zeros((num_splits,3,Nstrikes*Nmaturities))
-test_params = np.zeros((num_splits,X_test.shape[0],Nparameters))
-test_rel_errors = np.zeros((num_splits,X_test.shape[0],Nparameters))
-test_median_mean = np.zeros((num_splits,2,Nparameters))
-test_RMSE = np.zeros((num_splits,X_test.shape[0]))
-test_RMSE_median_mean = np.zeros((num_splits,2))
-for train_index, val_index in kf.split(X_train_Big,y_train_Big):
-    runs += 1
-    X_train, X_val = X_train_Big[train_index], X_train_Big[val_index]
-    y_train, y_val = y_train_Big[train_index], y_train_Big[val_index]
-    scale=StandardScaler()
-    y_train_transform = scale.fit_transform(y_train)
-    y_val_transform = scale.transform(y_val)
-    y_test_transform = scale.transform(y_test)
-    [y_train_trafo, y_val_trafo, y_test_trafo]=ytransform(y_train, y_val, y_test)
-    ub=np.amax(xx, axis=0)
-    lb=np.amin(xx, axis=0)
-    X_train_trafo = np.array([myscale(x) for x in X_train])
-    X_val_trafo = np.array([myscale(x) for x in X_val]) 
-    X_test_trafo = np.array([myscale(x) for x in X_test])
+# neural network fit        
+NN1 = Sequential()
+NN1.add(InputLayer(input_shape=(Nparameters,)))
+NN1.add(Dense(30, activation = 'elu'))
+NN1.add(Dense(30, activation = 'elu'))
+NN1.add(Dense(30, activation = 'elu'))
+NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
+#NN1.summary()
+NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
+NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
+        epochs = 200, verbose = True, shuffle=1)
 
+prediction=[yinversetransform(NN1.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
+
+#avg. rel error
+err[0,:] = np.mean(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
+#std. rel. error
+err[1,:] = np.std(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
+#max rel. error
+err[2,:] = np.max(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
+
+
+ksresults = np.zeros((nsims,4))
+
+for i in range(nsims):
+    train_sub = sample(range(14450),int(14450*0.8))
+    val_sub = sample(range(2550),int(2550*0.8))
+    X_train_trafo_s = X_train_trafo[train_sub,:]
+    X_val_trafo_s = X_val_trafo[val_sub,:]
+    y_train_trafo_s = y_train_trafo[train_sub,:] 
+    y_val_trafo_s = y_val_trafo[val_sub,:]
     # neural network fit        
-    NN1 = Sequential()
-    NN1.add(InputLayer(input_shape=(Nparameters,)))
-    NN1.add(Dense(30, activation = 'elu'))
-    NN1.add(Dense(30, activation = 'elu'))
-    NN1.add(Dense(30, activation = 'elu'))
-    NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
+    NN2 = Sequential()
+    NN2.add(InputLayer(input_shape=(Nparameters,)))
+    NN2.add(Dense(30, activation = 'elu'))
+    NN2.add(Dense(30, activation = 'elu'))
+    NN2.add(Dense(30, activation = 'elu'))
+    NN2.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
     #NN1.summary()
-    NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
-    NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
-            epochs = 200, verbose = True, shuffle=1)
-
-    y_test_re = yinversetransform(y_test_trafo)
-    prediction=[yinversetransform(NN1.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
-
+    NN2.compile(loss = root_mean_squared_error, optimizer = "adam")
+    NN2.fit(X_train_trafo_s, y_train_trafo_s, batch_size=32, validation_data = (X_val_trafo_s, y_val_trafo_s),
+            epochs = 10, verbose = True, shuffle=1)
+    
+    prediction=[yinversetransform(NN2.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
+    
     #avg. rel error
-    err[runs,0,:] = np.mean(100*np.abs((y_test_re-prediction)/y_test_re),axis = 0)
+    err2[i,0,:] = np.mean(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
     #std. rel. error
-    err[runs,1,:] = 100*np.std(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
+    err2[i,1,:] = np.std(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
     #max rel. error
-    err[runs,2,:] = 100*np.max(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
+    err2[i,2,:] = np.max(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
+    weights_1 = NN1.layers[0].get_weights()[0].reshape(30*5,)
+    weights_2 = NN1.layers[1].get_weights()[0].reshape(30*30,)
+    weights_3 = NN1.layers[2].get_weights()[0].reshape(30*30,)
+    weights_4 = NN1.layers[3].get_weights()[0].reshape(30*88,)
+    weights_1p = NN2.layers[0].get_weights()[0].reshape(30*5,)
+    weights_2p = NN2.layers[1].get_weights()[0].reshape(30*30,)
+    weights_3p = NN2.layers[2].get_weights()[0].reshape(30*30,)
+    weights_4p = NN2.layers[3].get_weights()[0].reshape(30*88,)
+    ksresults[i,0] = scipy.stats.ks_2samp(weights_1,weights_1p)[1]
+    ksresults[i,1] = scipy.stats.ks_2samp(weights_2,weights_2p)[1]
+    ksresults[i,2] = scipy.stats.ks_2samp(weights_3,weights_3p)[1]
+    ksresults[i,3] = scipy.stats.ks_2samp(weights_4,weights_4p)[1] 
+
+err_s = np.mean(err2,axis =0)
 
 
-    # gradient methods for optimization with Levenberg-Marquardt
-    NNParameters=[]
-    for i in range(0,len(NN1.layers)):
-        NNParameters.append(NN1.layers[i].get_weights())
-    NumLayers=3
-    Approx=[]
-    solutions=np.zeros([num_splits,Nparameters])
-    init=np.zeros(Nparameters)
-    n = X_test.shape[0]
-    for i in range(n):
-        disp=str(np.round((i+1)/n*100,1))+"%"
-        print (disp,end="\r")
-        #Levenberg-Marquardt
-        I=scipy.optimize.least_squares(CostFuncLS, init, JacobianLS, args=(i,), gtol=1E-10)
-        solutions=myinverse(I.x)
-        Approx.append(np.copy(solutions))
-    LMParameters=[Approx[i] for i in range(len(Approx))]
-    test_params[runs,:,:] = np.asarray(LMParameters)
-    
-    #Calibration Errors with Levenberg-Marquardt
-    average=np.zeros([Nparameters,n])
-    for u in range(Nparameters):
-        for i in range(n):
-            X=X_test[i][u]
-            plt.plot(X,100*np.abs(LMParameters[i][u]-X)/np.abs(X),'b*')
-            average[u,i]=np.abs(LMParameters[i][u]-X)/np.abs(X)
-        test_median_mean[runs,0,:] = np.quantile(100*average[u,:],0.5)
-        test_median_mean[runs,1,:] = np.mean(100*average[u,:])
-    test_rel_errors[runs,:,:] = average.T   
-    
-    #RMSE
-    RMSE_opt = np.zeros(n)
-    Y = len(y_test[0,:])
-    for i in range(n):
-        Y = y_test[i,:]
-        Y_pred = yinversetransform(NN1.predict(myscale(LMParameters[i]).reshape(1,Nparameters))[0])
-        RMSE_opt[i] = np.sqrt(np.mean((Y-Y_pred)**2))
-    test_RMSE_median_mean[runs,:] = [np.quantile(100*RMSE_opt,0.5),np.mean(100*RMSE_opt)]
-    test_RMSE[runs,:] = RMSE_opt 
-  
+import seaborn as sns
+
+plt.figure(figsize=(18,5))
+#==============================================================================
+#max error
+plt.subplot(131)
+sns.distplot(err[2,:], color = 'blue', hist = False, label = 'full set')
+sns.distplot(err_s[2,:], color = 'red', hist = False, label = 'reduced set')
+plt.legend(prop={'size': 16})
+plt.title('max errors full  vs. reduced')
+plt.xlabel('max error')
+plt.ylabel('Density')
+#==============================================================================
+#mean error
+plt.subplot(132)
+sns.distplot(err[0,:], color = 'blue', hist = False, label = 'full set')
+sns.distplot(err_s[0,:], color = 'red', hist = False, label = 'reduced set')
+plt.legend(prop={'size': 16})
+plt.title('mean errors full vs. reduced')
+plt.xlabel('mean error')
+plt.ylabel('Density')
+#==============================================================================
+#std error
+plt.subplot(133)
+sns.distplot(err[1,:], color = 'blue', hist = False, label = 'full set')
+sns.distplot(err_s[1,:], color = 'red', hist = False, label = 'reduced set')
+plt.legend(prop={'size': 16})
+plt.title('std errors reduced vs. reduced')
+plt.xlabel('std error')
+plt.ylabel('Density')
+
+plt.savefig('RobustnessSize.png', dpi=300)
+
