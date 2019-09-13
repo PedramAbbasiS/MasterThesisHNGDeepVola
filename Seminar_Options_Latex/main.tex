@@ -131,7 +131,7 @@ Let $\M^{HNG}(\theta)_{\theta \in \Theta^{HNG}}$ be the Heston-Nandi-GARCH model
 \theta = (\alpha, \beta, \gamma^*, \omega, r, \sigma_0^2) \in \Theta^{HNG} \subset \R^6. \label{eq:param}
 \end{align} 
 The parameter combination $\theta \in \Theta$ completely describes the dynamics of the Heston-Nandi-GARCH model $\M^{HNG}(\theta)$. \newline
-The pricing map is stated by $P: \HNG(\theta, \zeta) \to \mathcal{X}$, which is available in closed form for Heston-Nandi-GARCH. Thereby $\zeta$ includes the additional attributes needed to price a call option, namely strike price $K$ and maturity $T$ of the contract. Furthermore $\mathcal{P}^{MKT}(\zeta) \in \mathcal{X}$ are the observed market prices depending on $K$ and $T$. $\mbox{\large$\chi$}$ denotes the set of call options prices. The aim is to find the optimal parameters $\hat{\theta}$ which solves
+The pricing map is stated by $P: \HNG(\theta, \zeta) \to \mathcal{X}$, which is available in closed form for Heston-Nandi-GARCH. Thereby $\zeta$ includes the additional attributes needed to price a call option, namely strike price $K$ and maturity $T$ of the contract. Furthermore $\mathcal{P}^{MKT}(\zeta) \in \mathcal{X}$ are the observed market prices depending on $K$ and $T$. $\mathcal{X}$ denotes the set of call options prices. The aim is to find the optimal parameters $\hat{\theta}$ which solves
 \begin{align*}
     \hspace{0.7cm}\hat{\theta} = \argmin_{\theta\in \Theta^{HNG}} \delta(P(\HNG(\theta, \zeta)), \mathcal{P}^{MKT}(\zeta)).
 \end{align*}
