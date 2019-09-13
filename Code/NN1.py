@@ -19,8 +19,8 @@ import scipy
 import scipy.io
 #mat = scipy.io.loadmat('data_v2_2000_new.mat')
 #data = mat['data']
-mat = scipy.io.loadmat('data_vola_24998_0005_09_11_30_240.mat')
-data = mat['data']
+mat = scipy.io.loadmat('data_vola_21816_0005_09_11_30_240')
+data = mat['data_vola_clear'][:20000,:]
 #######
 
 #data = np.load('data_test_small_new1.npy')
@@ -116,8 +116,8 @@ for i in range(len(error[0,:])):
 S0=1.
 y_test_re = yinversetransform(y_test_trafo)
 prediction=[yinversetransform(NN1.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
-plt.figure(1,figsize=(21,6))
-ax=plt.subplot(1,3,1)
+plt.figure(1,figsize=(13,7))
+ax=plt.subplot(2,2,1)
 err = np.mean(100*np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Average relative error",fontsize=15,y=1.04)
 plt.imshow(err.reshape(Nmaturities,Nstrikes))
@@ -131,7 +131,7 @@ plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
 plt.colorbar(format=mtick.PercentFormatter())
 
-ax=plt.subplot(1,3,2)
+ax=plt.subplot(2,2,2)
 err = 100*np.std(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Std relative error",fontsize=15,y=1.04)
 plt.imshow(err.reshape(Nmaturities,Nstrikes))
@@ -144,7 +144,7 @@ ax.set_yticklabels(maturities)
 plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
 
-ax=plt.subplot(1,3,3)
+ax=plt.subplot(2,2,3)
 err = 100*np.max(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Maximum relative error",fontsize=15,y=1.04)
 plt.imshow(err.reshape(Nmaturities,Nstrikes))
@@ -157,7 +157,7 @@ plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.tight_layout()
-plt.savefig('HNG_NNErrors.png', dpi=300)
+#plt.savefig('HNG_NNErrors.png', dpi=300)
 plt.show()
 
 
@@ -191,7 +191,7 @@ ax.set_xlabel('log-moneyness')
 ax.set_ylabel('Maturities')
 ax.set_zlabel('Volatility');
 
-plt.title("Heston-Nandi implied volatility surface", fontsize=20)
+plt.title("Heston-Nandi option price surface", fontsize=20)
 
 ax = fig.add_subplot(1, 2, 2, projection='3d')
 surf = ax.plot_surface(X, Y, y_predict_sample_p , rstride=1, cstride=1,
@@ -204,7 +204,7 @@ plt.title('Neural Network prediction',fontsize=20)
 
 
 plt.tight_layout()
-plt.savefig('vola_surface.png', dpi=300)
+#plt.savefig('vola_surface.png', dpi=300)
 plt.show()
 
 
@@ -230,7 +230,7 @@ for i in range(Nmaturities):
     
     plt.legend()
 plt.tight_layout()
-plt.savefig('HNG_smile.png', dpi=300)
+#plt.savefig('HNG_smile.png', dpi=300)
 plt.show()
 
 #==============================================================================
@@ -287,7 +287,7 @@ Timing=[]
 solutions=np.zeros([1,Nparameters])
 #times=np.zeros(1)
 init=np.zeros(Nparameters)
-n = 100 #1000
+n = 1000
 for i in range(n):
     disp=str(i+1)+"/5000"
     print (disp,end="\r")
@@ -336,7 +336,7 @@ for u in range(Nparameters):
 
     print("average= ",np.mean(average[u,:]))
 plt.tight_layout()
-plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
+#plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
 plt.show()
 
 
@@ -406,13 +406,13 @@ plt.tick_params(axis='both', which='minor', labelsize=17)
 plt.xticks(np.arange(0, 101, step=10))
 plt.grid()
 plt.tight_layout()
-plt.savefig('HNG_ErrorCDF.png', dpi=300)
+#plt.savefig('HNG_ErrorCDF.png', dpi=300)
 plt.show()
 
 #==============================================================================
 #real data
 """
-sp500_mat = scipy.io.loadmat('surfaceprice2010SP500.mat')
+sp500_mat = scipy.io.loadmat('surfaceprice2013SP500.mat')
 surface = sp500_mat['surface']
 surface_trafo = ytransform(surface,surface,surface)[2]
 def CostFuncLS_real(x):
@@ -428,16 +428,41 @@ I=scipy.optimize.least_squares(CostFuncLS_real, init, JacobianLS_real, gtol=1E-1
 LMParameters_real=myinverse(I.x)
 Y_pred_real = yinversetransform(NN1.predict(myscale(LMParameters_real).reshape(1,Nparameters))[0])
 RMSE_opt_real = np.sqrt(np.mean((surface-Y_pred_real)**2))
-err_real_mean = np.mean(100*np.abs((surface-Y_pred_real)/surface),axis = 1)
+err_real_mean = np.abs((surface-Y_pred_real)/surface)
 err_real_median = np.median(100*np.abs((surface-Y_pred_real)/surface),axis = 1)
 err_real = (100*np.abs((surface-Y_pred_real)/surface)).reshape((Nmaturities, Nstrikes))
 diff = (Y_pred_real - surface).reshape((Nmaturities, Nstrikes))
-#np.savetxt("SP500_pred_NN.txt",Y_pred_real)
+
+
+
+plt.figure(1,figsize=(20,8))
+ax=plt.subplot(1,1,1)
+plt.title("Relative errors of neural network price prediction of S&P500 call prices ",fontsize=15,y=1.04)
+plt.imshow(err_real.reshape(Nmaturities,Nstrikes))
+plt.colorbar(format=mtick.PercentFormatter())
+ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+ax.set_xticklabels(strikes, fontsize=15)
+ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+ax.set_yticklabels(maturities,fontsize=15)
+plt.xlabel("Strike",fontsize=15,labelpad=5)
+plt.ylabel("Maturity",fontsize=15,labelpad=5)
+#plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+plt.tight_layout()
+plt.savefig('MLE_Price_NN_err_Sp500.png', dpi=300)
+plt.show()
+
+
+
+
+
+
+
+
 
 
 #black scholes
 bs_mat = scipy.io.loadmat('bs_prices.mat')
-bs_surface = bs_mat['bs'][0]
+bs_surface = bs_mat['bs'][2]
 RMSE_opt_real_bs = np.sqrt(np.mean((surface-bs_surface)**2))
 err_real_mean_bs = np.mean(100*np.abs((surface-bs_surface)/surface),axis = 1)
 err_real_median_bs = np.median(100*np.abs((surface-bs_surface)/surface),axis = 1)
@@ -480,3 +505,29 @@ plt.tight_layout()
 #plt.savefig('vola_surface.png', dpi=300)
 plt.show()
 """
+
+diff = np.zeros((len(data),1))
+for i in range(len(data)):
+    diff[i] = np.max(data[i,5:])-np.min(data[i,5:])
+
+maxi = np.zeros((len(data),1))
+for i in range(len(data)):
+    maxi[i] = np.mean(data[i,5:])  
+    
+mat_MLE = scipy.io.loadmat('data_vola_21816_0005_09_11_30_240')
+data_MLE = mat_MLE['data_vola_clear'][:20000,:]    
+mat_omega20 = scipy.io.loadmat('data_vola_24998_0005_09_11_30_240')
+data_omega20 = mat_omega20['data_vola_clear'][:20000,:]      
+mat_smallg = scipy.io.loadmat('data_vola_g_small_20000_08_12_0025')
+data_smallg = mat_smallg['data']  
+    
+import seaborn as sns
+plt.figure(figsize=(10,5))
+sns.distplot(data_MLE[:,5:].reshape(1,Nmaturities*Nstrikes*20000), color = 'blue', hist = False, label = 'MLE dataset')
+sns.distplot(data_omega20[:,5:].reshape(1,Nmaturities*Nstrikes*20000), color = 'red', hist = False, label = 'Low rel. errors dataset')   
+sns.distplot(data_smallg[:,6:].reshape(1,len(data_smallg[0,6:])*20000), color = 'green', hist = False, label = 'Small gamma dataset')   
+plt.legend(prop={'size': 16})
+plt.title('Frequency Distribution of implied volatilities in the datasets')
+plt.xlabel('implied volatility')
+plt.ylabel('Density')
+plt.savefig('Distribution_Vola_datsets.png', dpi=300)
