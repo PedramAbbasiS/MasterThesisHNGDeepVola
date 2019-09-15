@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6800 64-bit) (preloaded format=pdflatex 2018.11.26)  13 SEP 2019 15:11
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6800 64-bit) (preloaded format=pdflatex 2018.11.26)  15 SEP 2019 10:32
 entering extended mode
 **./main.tex
 (main.tex
@@ -699,14 +699,26 @@ Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
 \WF@box=\box43
 \WF@everypar=\toks25
 Package: wrapfig 2003/01/31  v 3.6
-) (main.aux
-
-LaTeX Warning: Label `fig:MLE_Price_NN_rel_err' multiply defined.
-
-
-LaTeX Warning: Label `fig:trainset_sensitivity' multiply defined.
-
 )
+("C:\Program Files\MiKTeX 2.9\tex\latex\caption\caption.sty"
+Package: caption 2019/09/01 v3.3d Customizing captions (AR)
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\caption\caption3.sty"
+Package: caption3 2019/09/01 v1.8d caption3 kernel (AR)
+Package caption3 Info: TeX engine: e-TeX on input line 64.
+\captionmargin=\dimen175
+\captionmargin@=\dimen176
+\captionwidth=\dimen177
+\caption@tempdima=\dimen178
+\caption@indent=\dimen179
+\caption@parindent=\dimen180
+\caption@hangindent=\dimen181
+)
+\c@caption@flags=\count281
+\c@ContinuedFloat=\count282
+Package caption Info: hyperref package is loaded.
+Package caption Info: wrapfig package is loaded.
+) (main.aux)
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 48.
@@ -725,7 +737,8 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 48.
 LaTeX Font Info:    ... okay on input line 48.
 LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 48.
 LaTeX Font Info:    Try loading font information for TS1+cmr on input line 48.
- ("C:\Program Files\MiKTeX 2.9\tex\latex\base\ts1cmr.fd"
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\base\ts1cmr.fd"
 File: ts1cmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    ... okay on input line 48.
@@ -808,7 +821,7 @@ Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
 ("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\gettitlestring.sty"
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
-\c@section@level=\count281
+\c@section@level=\count283
 )
 LaTeX Info: Redefining \ref on input line 48.
 LaTeX Info: Redefining \pageref on input line 48.
@@ -834,16 +847,16 @@ File: mt-ptm.cfg 2006/04/20 v1.7 microtype config. file: Times (RS)
 )
 ("C:\Program Files\MiKTeX 2.9\tex\context\base\supp-pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count282
-\scratchdimen=\dimen175
+\scratchcounter=\count284
+\scratchdimen=\dimen182
 \scratchbox=\box45
-\nofMPsegments=\count283
-\nofMParguments=\count284
+\nofMPsegments=\count285
+\nofMParguments=\count286
 \everyMPshowfont=\toks26
-\MPscratchCnt=\count285
-\MPscratchDim=\dimen176
-\MPnumerator=\count286
-\makeMPintoPDFobject=\count287
+\MPscratchCnt=\count287
+\MPscratchDim=\dimen183
+\MPnumerator=\count288
+\makeMPintoPDFobject=\count289
 \everyMPtoPDFconversion=\toks27
 ) ("C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\epstopdf-base.sty"
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
@@ -858,6 +871,9 @@ Package grfext Info: Graphics extension search list:
 G,.JBIG2,.JB2,.eps]
 (grfext)             \AppendGraphicsExtensions on input line 456.
 )
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: End \AtBeginDocument code.
+
 ("C:\Program Files\MiKTeX 2.9\tex\latex\microtype\mt-cmr.cfg"
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
@@ -905,10 +921,10 @@ LaTeX Font Info:    Font shape `T1/ptm/bx/it' in size <10.95> not available
  [2] [3]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\@ifnextchar' on input line 121.
+(hyperref)                removing `\@ifnextchar' on input line 118.
 
 [4] [5]
-Underfull \hbox (badness 10000) in paragraph at lines 157--158
+Underfull \hbox (badness 10000) in paragraph at lines 154--155
 []\T1/ptm/m/n/10.95 (+20) The neu-ral net-work $\OML/cmm/m/it/10.95 F\OT1/cmr/m
 /n/10.95 (\OML/cmm/m/it/10.95 ; []\OT1/cmr/m/n/10.95 )$ \T1/ptm/m/n/10.95 (+20
 ) learns the set of im-plied volatil-i-ties $\OML/cmm/m/it/10.95 F[]\OT1/cmr/m/
@@ -916,71 +932,71 @@ n/10.95 (\OML/cmm/m/it/10.95 \OT1/cmr/m/n/10.95 ) =
  []
 
 [6]
-LaTeX Font Info:    Try loading font information for TS1+ptm on input line 211.
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 208.
 
  ("C:\Program Files\MiKTeX 2.9\tex\latex\psnfss\ts1ptm.fd"
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 ) [7]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 227.
+(hyperref)                removing `math shift' on input line 224.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\gamma' on input line 227.
+(hyperref)                removing `\gamma' on input line 224.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `superscript' on input line 227.
+(hyperref)                removing `superscript' on input line 224.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `math shift' on input line 227.
+(hyperref)                removing `math shift' on input line 224.
 
 <Distribution_Vola_datsets.png, id=251, 722.7pt x 361.35pt>
 File: Distribution_Vola_datsets.png Graphic file (type png)
 <use Distribution_Vola_datsets.png>
-Package pdftex.def Info: Distribution_Vola_datsets.png  used on input line 242.
+Package pdftex.def Info: Distribution_Vola_datsets.png  used on input line 239.
 
 (pdftex.def)             Requested size: 375.80542pt x 187.90308pt.
 [8 <./Distribution_Vola_datsets.png>]
 <parameter_mle.png, id=268, 1370.11874pt x 249.93375pt>
 File: parameter_mle.png Graphic file (type png)
 <use parameter_mle.png>
-Package pdftex.def Info: parameter_mle.png  used on input line 283.
+Package pdftex.def Info: parameter_mle.png  used on input line 280.
 (pdftex.def)             Requested size: 469.75499pt x 85.6895pt.
 <calls_surface_sp500_2015.jpg, id=273, 991.705pt x 853.1875pt>
 File: calls_surface_sp500_2015.jpg Graphic file (type jpg)
 <use calls_surface_sp500_2015.jpg>
-Package pdftex.def Info: calls_surface_sp500_2015.jpg  used on input line 294.
+Package pdftex.def Info: calls_surface_sp500_2015.jpg  used on input line 291.
 (pdftex.def)             Requested size: 234.87749pt x 202.06131pt.
  [9 <./parameter_mle.png (PNG copy)>]
 <MLE_Vola_HNG_NNErrors.png, id=287, 1517.67pt x 433.62pt>
 File: MLE_Vola_HNG_NNErrors.png Graphic file (type png)
 <use MLE_Vola_HNG_NNErrors.png>
-Package pdftex.def Info: MLE_Vola_HNG_NNErrors.png  used on input line 312.
+Package pdftex.def Info: MLE_Vola_HNG_NNErrors.png  used on input line 309.
 (pdftex.def)             Requested size: 469.75499pt x 134.2157pt.
 <MLE_Vola_HNG_ParameterRelativeErrors.png, id=288, 867.24pt x 578.16pt>
 File: MLE_Vola_HNG_ParameterRelativeErrors.png Graphic file (type png)
 <use MLE_Vola_HNG_ParameterRelativeErrors.png>
 Package pdftex.def Info: MLE_Vola_HNG_ParameterRelativeErrors.png  used on inpu
-t line 320.
+t line 317.
 (pdftex.def)             Requested size: 469.75499pt x 313.17216pt.
 <MLE_Vola_HNG_smile.png, id=289, 1011.78pt x 454.8192pt>
 File: MLE_Vola_HNG_smile.png Graphic file (type png)
 <use MLE_Vola_HNG_smile.png>
-Package pdftex.def Info: MLE_Vola_HNG_smile.png  used on input line 328.
+Package pdftex.def Info: MLE_Vola_HNG_smile.png  used on input line 325.
 (pdftex.def)             Requested size: 469.75499pt x 211.1695pt.
 <Low_error_Vola_HNG_NNErrors.png, id=293, 1517.67pt x 433.62pt>
 File: Low_error_Vola_HNG_NNErrors.png Graphic file (type png)
 <use Low_error_Vola_HNG_NNErrors.png>
-Package pdftex.def Info: Low_error_Vola_HNG_NNErrors.png  used on input line 34
-0.
+Package pdftex.def Info: Low_error_Vola_HNG_NNErrors.png  used on input line 33
+7.
 (pdftex.def)             Requested size: 469.75499pt x 134.2157pt.
 <Low_error_Vola_HNG_smile.png, id=294, 1011.78pt x 453.8556pt>
 File: Low_error_Vola_HNG_smile.png Graphic file (type png)
 <use Low_error_Vola_HNG_smile.png>
-Package pdftex.def Info: Low_error_Vola_HNG_smile.png  used on input line 348.
+Package pdftex.def Info: Low_error_Vola_HNG_smile.png  used on input line 345.
 (pdftex.def)             Requested size: 469.75499pt x 210.7221pt.
 
 [10 <./calls_surface_sp500_2015.jpg>]
@@ -988,118 +1004,122 @@ Package pdftex.def Info: Low_error_Vola_HNG_smile.png  used on input line 348.
 File: Low_error_Vola_HNG_ParameterRelativeErrors.png Graphic file (type png)
 <use Low_error_Vola_HNG_ParameterRelativeErrors.png>
 Package pdftex.def Info: Low_error_Vola_HNG_ParameterRelativeErrors.png  used o
-n input line 357.
+n input line 354.
 (pdftex.def)             Requested size: 469.75499pt x 313.17216pt.
 <Small_g_Vola_HNG_NNErrors.png, id=311, 1084.05pt x 578.16pt>
 File: Small_g_Vola_HNG_NNErrors.png Graphic file (type png)
 <use Small_g_Vola_HNG_NNErrors.png>
-Package pdftex.def Info: Small_g_Vola_HNG_NNErrors.png  used on input line 372.
+Package pdftex.def Info: Small_g_Vola_HNG_NNErrors.png  used on input line 369.
 
 (pdftex.def)             Requested size: 469.75499pt x 250.53596pt.
 <Small_g_Vola_HNG_smile.png, id=312, 1011.0573pt x 457.2282pt>
 File: Small_g_Vola_HNG_smile.png Graphic file (type png)
 <use Small_g_Vola_HNG_smile.png>
-Package pdftex.def Info: Small_g_Vola_HNG_smile.png  used on input line 380.
+Package pdftex.def Info: Small_g_Vola_HNG_smile.png  used on input line 377.
 (pdftex.def)             Requested size: 469.75499pt x 212.4345pt.
 <Small_g_Vola_surface.png, id=313, 1300.86pt x 361.35pt>
 File: Small_g_Vola_surface.png Graphic file (type png)
 <use Small_g_Vola_surface.png>
-Package pdftex.def Info: Small_g_Vola_surface.png  used on input line 388.
+Package pdftex.def Info: Small_g_Vola_surface.png  used on input line 385.
 (pdftex.def)             Requested size: 469.75499pt x 130.4884pt.
 <Small_g_Vola_HNG_ParameterRelativeErrors.png, id=314, 867.24pt x 578.16pt>
 File: Small_g_Vola_HNG_ParameterRelativeErrors.png Graphic file (type png)
 <use Small_g_Vola_HNG_ParameterRelativeErrors.png>
 Package pdftex.def Info: Small_g_Vola_HNG_ParameterRelativeErrors.png  used on 
-input line 396.
+input line 393.
 (pdftex.def)             Requested size: 469.75499pt x 313.17216pt.
+
+Underfull \vbox (badness 1354) has occurred while \output is active []
+
  [11 <./MLE_Vola_HNG_NNErrors.png> <./MLE_Vola_HNG_ParameterRelativeErrors.png>
 ] [12 <./MLE_Vola_HNG_smile.png> <./Low_error_Vola_HNG_NNErrors.png>]
 <Small_g_Price_HNG_NNErrors.png, id=336, 939.51pt x 505.89pt>
 File: Small_g_Price_HNG_NNErrors.png Graphic file (type png)
 <use Small_g_Price_HNG_NNErrors.png>
-Package pdftex.def Info: Small_g_Price_HNG_NNErrors.png  used on input line 413
+Package pdftex.def Info: Small_g_Price_HNG_NNErrors.png  used on input line 410
 .
 (pdftex.def)             Requested size: 469.75499pt x 252.94437pt.
 <Small_g_Price_surface.png, id=337, 1300.86pt x 361.35pt>
 File: Small_g_Price_surface.png Graphic file (type png)
 <use Small_g_Price_surface.png>
-Package pdftex.def Info: Small_g_Price_surface.png  used on input line 421.
+Package pdftex.def Info: Small_g_Price_surface.png  used on input line 418.
 (pdftex.def)             Requested size: 469.75499pt x 130.4884pt.
+
+Underfull \vbox (badness 1824) has occurred while \output is active []
+
  [13 <./Low_error_Vola_HNG_smile.png> <./Low_error_Vola_HNG_ParameterRelativeEr
 rors.png>]
-Underfull \vbox (badness 1194) has occurred while \output is active []
+Underfull \vbox (badness 2158) has occurred while \output is active []
 
- [14 <./Small_g_Vola_HNG_NNErrors.png> <./Small_g_Vola_HNG_smile.png>] [15 <./S
-mall_g_Vola_surface.png> <./Small_g_Vola_HNG_ParameterRelativeErrors.png>]
+ [14 <./Small_g_Vola_HNG_NNErrors.png> <./Small_g_Vola_HNG_smile.png>]
+Underfull \vbox (badness 1874) has occurred while \output is active []
+
+ [15 <./Small_g_Vola_surface.png> <./Small_g_Vola_HNG_ParameterRelativeErrors.p
+ng>]
 <MLE_Price_NN_err_Sp500.png, id=373, 1445.4pt x 578.16pt>
 File: MLE_Price_NN_err_Sp500.png Graphic file (type png)
 <use MLE_Price_NN_err_Sp500.png>
-Package pdftex.def Info: MLE_Price_NN_err_Sp500.png  used on input line 451.
+Package pdftex.def Info: MLE_Price_NN_err_Sp500.png  used on input line 448.
 (pdftex.def)             Requested size: 469.75499pt x 187.89977pt.
 <Robustness_Vola_Noise.png, id=375, 1300.86pt x 361.35pt>
 File: Robustness_Vola_Noise.png Graphic file (type png)
 <use Robustness_Vola_Noise.png>
-Package pdftex.def Info: Robustness_Vola_Noise.png  used on input line 469.
+Package pdftex.def Info: Robustness_Vola_Noise.png  used on input line 466.
 (pdftex.def)             Requested size: 469.75499pt x 130.4884pt.
- [16 <./Small_g_Price_HNG_NNErrors.png> <./Small_g_Price_surface.png>]
+
+[16 <./Small_g_Price_HNG_NNErrors.png> <./Small_g_Price_surface.png>]
 <RobustnessSize.png, id=387, 1300.86pt x 361.35pt>
 File: RobustnessSize.png Graphic file (type png)
 <use RobustnessSize.png>
-Package pdftex.def Info: RobustnessSize.png  used on input line 484.
+Package pdftex.def Info: RobustnessSize.png  used on input line 481.
 (pdftex.def)             Requested size: 469.75499pt x 130.4884pt.
  [17 <./MLE_Price_NN_err_Sp500.png> <./Robustness_Vola_Noise.png>] [18 <./Robus
 tnessSize.png>] [19]
-<MLE_Vola_HNG_ErrorCDF.png, id=419, 1300.86pt x 361.35pt>
+<MLE_Vola_HNG_ErrorCDF.png, id=418, 1300.86pt x 361.35pt>
 File: MLE_Vola_HNG_ErrorCDF.png Graphic file (type png)
 <use MLE_Vola_HNG_ErrorCDF.png>
-Package pdftex.def Info: MLE_Vola_HNG_ErrorCDF.png  used on input line 537.
+Package pdftex.def Info: MLE_Vola_HNG_ErrorCDF.png  used on input line 535.
 (pdftex.def)             Requested size: 469.75499pt x 130.4884pt.
-<Low_error_HNG_ErrorCDF.png, id=420, 1300.86pt x 361.35pt>
+<Low_error_HNG_ErrorCDF.png, id=419, 1300.86pt x 361.35pt>
 File: Low_error_HNG_ErrorCDF.png Graphic file (type png)
 <use Low_error_HNG_ErrorCDF.png>
-Package pdftex.def Info: Low_error_HNG_ErrorCDF.png  used on input line 545.
+Package pdftex.def Info: Low_error_HNG_ErrorCDF.png  used on input line 543.
 (pdftex.def)             Requested size: 469.75499pt x 130.4884pt.
-<Small_g_HNG_ErrorCDF.png, id=421, 1300.86pt x 361.35pt>
+<Small_g_HNG_ErrorCDF.png, id=420, 1300.86pt x 361.35pt>
 File: Small_g_HNG_ErrorCDF.png Graphic file (type png)
 <use Small_g_HNG_ErrorCDF.png>
-Package pdftex.def Info: Small_g_HNG_ErrorCDF.png  used on input line 553.
+Package pdftex.def Info: Small_g_HNG_ErrorCDF.png  used on input line 551.
 (pdftex.def)             Requested size: 469.75499pt x 130.4884pt.
-<RobustnessSize20p.png, id=423, 1300.86pt x 361.35pt>
+<RobustnessSize20p.png, id=422, 1300.86pt x 361.35pt>
 File: RobustnessSize20p.png Graphic file (type png)
 <use RobustnessSize20p.png>
-Package pdftex.def Info: RobustnessSize20p.png  used on input line 578.
+Package pdftex.def Info: RobustnessSize20p.png  used on input line 576.
 (pdftex.def)             Requested size: 469.75499pt x 130.4884pt.
-
-[20 <./MLE_Vola_HNG_ErrorCDF.png> <./Low_error_HNG_ErrorCDF.png> <./Small_g_HNG
-_ErrorCDF.png>]
-<rmse_modelvsbls.png, id=436, 784.43062pt x 295.1025pt>
+ [20 <./MLE_Vola_HNG_ErrorCDF.png> <./Low_error_HNG_ErrorCDF.png> <./Small_g_HN
+G_ErrorCDF.png>]
+<rmse_modelvsbls.png, id=435, 784.43062pt x 295.1025pt>
 File: rmse_modelvsbls.png Graphic file (type png)
 <use rmse_modelvsbls.png>
-Package pdftex.def Info: rmse_modelvsbls.png  used on input line 589.
+Package pdftex.def Info: rmse_modelvsbls.png  used on input line 587.
 (pdftex.def)             Requested size: 469.75499pt x 176.72513pt.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 596.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 594.
  [21 <./RobustnessSize20p.png> <./rmse_modelvsbls.png>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 596.
-
-(main.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 596.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 596.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 594.
+ (main.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 594.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 594.
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 478F739C6C2BA30B89679CC28C9CB32D;1996.
-
-
-LaTeX Warning: There were multiply-defined labels.
-
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 596.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 594.
  ) 
 Here is how much of TeX's memory you used:
- 19584 strings out of 492973
- 337523 string characters out of 3135934
+ 20654 strings out of 492973
+ 357296 string characters out of 3135934
  569108 words of memory out of 3000000
- 22940 multiletter control sequences out of 15000+200000
+ 24004 multiletter control sequences out of 15000+200000
  595864 words of font info for 197 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 40i,16n,63p,1260b,431s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 40i,16n,63p,1260b,385s stack positions out of 5000i,500n,10000p,200000b,50000s
 pdfTeX warning (dest): name{Hfootnote.8} has been referenced but does not exi
 st, replaced by a fixed one
 
@@ -1131,7 +1151,7 @@ Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files/MiK
 TeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/ty
 pe1/urw/times/utmr8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utm
 ri8a.pfb>
-Output written on main.pdf (21 pages, 7795773 bytes).
+Output written on main.pdf (21 pages, 7796241 bytes).
 PDF statistics:
  560 PDF objects out of 1000 (max. 8388607)
  112 named destinations out of 1000 (max. 500000)

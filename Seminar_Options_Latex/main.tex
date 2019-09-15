@@ -18,6 +18,7 @@
 \usepackage{multirow}
 \usepackage{xcolor}
 \usepackage{wrapfig}
+\usepackage{caption}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \DeclareMathOperator{\E}{\mathbb{E}}
@@ -38,8 +39,7 @@
   Henrik Brautmeier \\
   Student ID: 905387 \\
   \texttt{henrik.brautmeier@uni.kn} \\
-  %% examples of more authors
-   \And
+  \And
  Lukas Wuertenberger \\
  Student ID: 905804 \\
  \texttt{lukas.wuertenberger@uni.kn} \\
@@ -55,14 +55,11 @@ We present a continued development of the neural network calibration method by H
 %\vspace{3cm}
 
 \textit{\textbf{Acknowledgments}} Special thanks to Lyudmila Grigoryeva for her universal support as well as her target-oriented criticism. We are grateful to Juan-Pablo Ortega for his stimulating input.
-%\begin{center}
-%\textbf{Acknowledgments}\\
-%Special thanks to Lyudmila Gregorieva for her universal support as well as her target-oriented criticism.\\ We are grateful to Juan-Pablo Ortega for his stimulating input.\end{center}
 
 \newpage \tableofcontents\newpage
 \section{Introduction}
 Since the first occurrence of modern derivatives end of last century, their importance increased significantly. Besides the usage as additional investment opportunity, options and other derivatives provide an utmost important tool for controlling market risk. Hence, researches have spend years investigating pricing and hedging of such financial products. Starting with the work of Black and Scholes (1973) and Merton (1973), tons of market models were introduced and analysed, each with it's own upsides and flaws. With increasing complexity, it's not possible to ensure the existence of closed form pricing formulas. Therefore calibrating models and estimating optimal parameters lead to the necessity of very computation-intensive simulations, which themselves add approximation errors to each calculation. This explains the attractiveness of the Black-Scholes-Merton model even after more realistic stochastic pricing models have been developed.  \\ 
-To tackle these problems, Horvath et al  \cite{Blanka} introduce a new approach. The authors provide a method on separating pricing and calibration process using feed-forward neutral networks. Firstly, a neural net is trained to map model parameters directly to the pricing surface. By doing so the computational-intensive simulations are needed  only once for training. Afterwards the neural net  can be used as fast and accurate pricing function. Secondly, the calibration task is reduced to a "simple" constrained optimization task. The trained net is used as input function and no further computation meaningful steps are needed. \\
+To tackle these problems, Horvath et al.  \cite{Blanka} introduce a new approach. The authors provide a method on separating pricing and calibration process using feed-forward neutral networks. Firstly, a neural net is trained to map model parameters directly to the pricing surface. By doing so the computational-intensive simulations are needed  only once for training. Afterwards the neural net  can be used as fast and accurate pricing function. Secondly, the calibration task is reduced to a "simple" constrained optimization task. The trained net is used as input function and no further computation meaningful steps are needed. \\
 Using continuous-time stochastic volatility models often results in problems when one is asked not only to calibrate a model to observable market data, but to fit historical observations or future projections. In this paper we use the approach of \cite{Blanka} and apply it to discrete-time models, namely Heston-Nandi-GARCH. This allows to price in a real world scenario and not only under a risk-neutral markets. One advantage of using Heston and Nandi's model is the existence of a closed form solution. Hence, we do not deal with additional approximation errors resulting from Monte-Carlo simulation. Nonetheless, this approach is easily generalizable to any other discrete-time model. Furthermore we provide a rudimentary way on involving real data into the setting by combining the deep learning model with standard econometric theory.
 
 
@@ -151,7 +148,7 @@ A further, more promising approach is presented in Horvath et al. \cite{Blanka}.
 \end{enumerate}
 
 \subsection{The two step approach - Image-based implicit learning}
-As we believe the two step approach with image-based implicit learning is most suitable in the Heston-Nandi-GARCH context, we skip the inverse map approach and the two step pointwise learning approach. Instead this subsection describes the image-based concept of Horvath et al \cite{Blanka} in detail. \newline
+As we believe the two step approach with image-based implicit learning is most suitable in the Heston-Nandi-GARCH context, we skip the inverse map approach and the two step pointwise learning approach. Instead this subsection describes the image-based concept of Horvath et al. \cite{Blanka} in detail. \newline
 As a first step, a fixed grid of strikes and maturities, $\Delta := \{K_i, T_j\}_{i=1,\hspace{.1cm} j=1}^{n,\hspace{.35cm}m}$ is defined. This grid specifies the set of call options we are interested in, namely call options with strike $K_i$, $i=1,\ldots,n$, and maturity $T_j$, $j=1,\ldots,m$. Hereafter the following two steps are conducted.
 \begin{enumerate}
     \item The neural network $F(\theta, \hat{\nu})$ learns the set of implied volatilities  $F^*(\theta) = \{\sigma_{BS}^{\mathcal{M}^{HNG}(\theta)}(T_i,K_j)\}_{i=1,\hspace{.1cm} j=1}^{n,\hspace{.35cm}m}$ (resp. prices $F^*(\theta) = \{P(\mathcal{M}^{HNG}(\theta, (T_i, K_j))\}_{i=1,\hspace{.1cm} j=1}^{n,\hspace{.35cm}m}$), where $\hat{\nu}$ are the trained network weights and 
@@ -178,7 +175,7 @@ Learning and calibration can also be done pointwise (cf. Horvath et al. \cite{Bl
     \item freedom of choosing the grid 
 \end{enumerate}
 \subsection{Neural Network architecture}\label{sec:NN_arch}
-Analogous to Horvath et al. \cite{Blanka} we use a fully connected feed forward neural network with 3 hidden layers and 30 nodes on each layer. Although the Heston-Nandi-GARCH model has 5 input parameters\footnote{We used a constant interest rate r.} (the models in Horvath et al. \cite{Blanka} only have 4) a more complex model (e.g. adding additional layers, add dropout,...) doesn't increase the approximation quality. \newline
+Analogously to Horvath et al. \cite{Blanka} we use a fully connected feed forward neural network with 3 hidden layers and 30 nodes on each layer. Although the Heston-Nandi-GARCH model has 5 input parameters\footnote{We used a constant interest rate r.} (the models in Horvath et al. \cite{Blanka} only have 4) a more complex model (e.g. adding additional layers, add dropout,...) doesn't increase the approximation quality. \newline
 The input vector contains the five variable parameters $\alpha, \beta, \gamma^*, \omega$ and $\sigma_0$. The output dimension is defined by the product of the number of strikes and the number of the maturities in the grid. \newline
 The activation function for the  hidden layers is elu $\sigma_{elu} = \alpha(e^x-1)$ with $\alpha = 1$ and for the output layer it is the linear function, i.e. no activation. \newline
 Similar to \cite{Blanka} we use 200 epochs and a batch size of 32 to train the network. \newline
@@ -210,7 +207,7 @@ In Section \ref{sec:real_data} we present an Maximum Likelihood approach on esti
 \begin{itemize}
     \item Train Set: 14,450, Validation Set: 2,550 and Test Set: 3,000
     \item Parameter intervals: $(\alpha, \beta, \gamma^*, \omega, r ,\sigma_0^2) \in \mathcal{U}[5.8e-7, 1.4e-6] \times \mathcal{U}[0.43, 0.75] \times \mathcal{U}[441, 590] \times \mathcal{U}[4.1e-7, 2.9e-6] \times 0.005/252 \times [1.3e-4, 0.001]$
-    \item Special specifications: constant interest rate at $0.5\%$ annually, the initial variance $\sigma_0^2$ is determined by the unconditional variance  $\sigma_0^2 = \frac{\alpha+\omega}{1-\beta-\alpha\cdot\gamma^2}$.
+    \item Special specifications: constant interest rate at $0.5\%$ annually, the initial variance $\sigma_0^2$ is determined by the unconditional variance  $\sigma_0^2 = \frac{\alpha+\omega}{1-\beta-\alpha\gamma^2}$.
     \item Strikes = $\{0.9, 0.92, 0.94, 0.96, 0.98, 1, 1.02, 1.04, 1.06, 1.08, 1.1\}$
     \item Maturities = $\{30, 60, 90, 120, 150, 180, 210, 240\}$ (in days)
 \end{itemize}
@@ -220,7 +217,7 @@ In this paragraph we introduce parameter intervals which yield the best volatili
 \begin{itemize}
     \item Train Set: 14,450, Validation Set: 2,550 and Test Set: 3,000
     \item Parameter intervals: $(\alpha, \beta, \gamma^*, \omega, r ,\sigma_0^2) \in \mathcal{U}[1e-6, 1.5e-6] \times \mathcal{U}[0.57, 0.7] \times \mathcal{U}[450, 500] \times \mathcal{U}[1.1e-5, 2e-5] \times 0.005/252 \times [5.8e-5, 2e-4]$
-    \item Special specifications: constant interest rate at $0.5\%$ annually, the initial variance $\sigma_0^2$ is determined by the unconditional variance  $\sigma_0^2 = \frac{\alpha+\omega}{1-\beta-\alpha\cdot\gamma^2}$.
+    \item Special specifications: constant interest rate at $0.5\%$ annually, the initial variance $\sigma_0^2$ is determined by the unconditional variance  $\sigma_0^2 = \frac{\alpha+\omega}{1-\beta-\alpha\gamma^2}$.
     \item Strikes = $\{0.9, 0.92, 0.94, 0.96, 0.98, 1, 1.02, 1.04, 1.06, 1.08, 1.1\}$
     \item Maturities = $\{30, 60, 90, 120, 150, 180, 210, 240\}$ (in days)
 \end{itemize}
@@ -230,7 +227,7 @@ The $\gamma$ parameter in Heston-Nandi-GARCH model controls the skewness of the 
 \begin{itemize}
     \item Train Set: 14,450, Validation Set: 2,550 and Test Set: 3,000
     \item Parameter intervals: $(\alpha, \beta, \gamma^*, \omega, r ,\sigma_0^2) \in \mathcal{U}[5e-6, 7.5e-5] \times \mathcal{U}[0.85, 0.98] \times \mathcal{U}[1, 4] \times \mathcal{U}[2.75e-6, 1.5e-5] \times 0.005/252 \times [7e-5, 0.001]$
-    \item Special specifications: constant interest rate at $0.5\%$ annually, the initial variance $\sigma_0^2$ is determined by the unconditional variance  $\sigma_0^2 = \frac{\alpha+\omega}{1-\beta-\alpha\cdot\gamma^2}$.
+    \item Special specifications: constant interest rate at $0.5\%$ annually, the initial variance $\sigma_0^2$ is determined by the unconditional variance  $\sigma_0^2 = \frac{\alpha+\omega}{1-\beta-\alpha\gamma^2}$.
     \item Strikes = $\{0.8$ to $1.2$ by $0.025$ steps$\}$
     \item Maturities = $\{30, 60, 90, 120, 150, 180, 210, 240\}$ (in days)
 \end{itemize}
@@ -272,11 +269,11 @@ A rolling window approach (1000 runs, window length 750 days, starting windows J
 \hline
  & \multicolumn{1}{c|}{$\omega$} & \multicolumn{1}{c|}{$\alpha$} & \multicolumn{1}{c|}{$\beta$} & \multicolumn{1}{c|}{$\gamma$} & \multicolumn{1}{c|}{$\lambda$} \\ \hline
 Average & 2.894e-6 & 1.235e-6 & 0.661 & 473.243 & 10.384 \\ \hline
-Standard Deviation & 1.006e-6 & 2.649e-7 & 0.087 & 11.489 & 2.871e-5 \\ \hline
+Standard Deviation & 1.006e-6 & 2.649e-7 & 0.087 & 11.489 & 4.321\\ \hline
 5\% Quantile & 1.587e-6 & 9.903e-7 & 0.527 & 456.564 & 5.052 \\ \hline
 95\% Quantile & 5.526e-6 & 1.610e-6 & 0.741 & 489.853 & 14.214 \\\hline
-\end{tabular}\label{tab:resultsMLE}\vspace{0.1cm}
-\caption{Rolling estimation of Heston and Nandi between 2012 and 2015 on S\&P500}
+\end{tabular}\vspace{0.1cm}
+\caption{Rolling estimation of Heston and Nandi between 2012 and 2015 on S\&P500\label{tab:resultsMLE}}
 \end{table}
 \begin{figure}[!ht]
     \centering
@@ -285,7 +282,7 @@ Standard Deviation & 1.006e-6 & 2.649e-7 & 0.087 & 11.489 & 2.871e-5 \\ \hline
     \label{fig:paramsMLE}
 \end{figure}\\
 The  symmetric 90\% confidence interval of these parameters is included in one parameter set, which is used to train the neural net (cf. Section \ref{sec:setupmle}). This procedure should assure that the neural net is capable of pricing calls on S\&P500 traded in the corresponding years.\\
-Besides the model fit of this parameter setup (cf. Section \ref{sec:price_surf}), we want to analyse how well this rudimentary approach fits real option prices. To test this, prices of European style call options with underlying S\&P500 traded between January 2010 and December 2015 are used. Options with a open interest or a trading volume of less then 100 were excluded. Additionally options with a maturity of more then 1 year and less then 30 days were excluded. The dataset contains 73.918 call options. The observed Moneyness is 0.6 between 2.8. Due to the small amount of option with extreme high/low Strikes, we only consider options with relative Strike $\frac{K}{S_0}$ between 0.9 and 1.1. Prices of options with same characteristics are averaged out to get a unique price. These differences may occur from market microstructure effects, semiefficient markets or a change in interest rate. Per year a single price surface is generated and cubic interpolation is used to smooth the surface and fit missing values. Figure \ref{fig:real_surf} shows the fitted surface and real options prices in 2015. These surfaces are now used to calibrate the trained net. The results can be found in Section \ref{sec:results_sp500}.
+Besides the model fit of this parameter setup (cf. Section \ref{sec:price_surf}), we want to analyse how well this rudimentary approach fits real option prices. To test this, prices of European style call options with underlying S\&P500 traded between January 2010 and December 2015 are used. Options with a open interest or a trading volume of less then 100 were excluded. Additionally options with a maturity of more then 1 year and less then 30 days were excluded. The dataset contains 73,918 call options. The observed Moneyness is 0.6 between 2.8. Due to the small amount of option with extreme high/low Strikes, we only consider options with relative Strike $\frac{K}{S_0}$ between 0.9 and 1.1. Prices of options with same characteristics are averaged out to get a unique price. These differences may occur from market microstructure effects, semiefficient markets or a change in interest rate. Per year a single price surface is generated and cubic interpolation is used to smooth the surface and fit missing values. Figure \ref{fig:real_surf} shows the fitted surface and real options prices in 2015. These surfaces are now used to calibrate the trained net. The results can be found in Section \ref{sec:results_sp500}.
 %=====================================
 %\iffalse
 %\begin{wrapfigure}{c}{0.7\textwidth}[!ht]
@@ -434,8 +431,8 @@ Even tho the fit on price surfaces looks promising, a small error itself does no
  & \multicolumn{1}{c|}{NN} & \multicolumn{1}{c|}{BS} & \multicolumn{1}{c|}{NN} & \multicolumn{1}{c|}{BS} & \multicolumn{1}{c|}{NN} & \multicolumn{1}{c|}{BS} \\ \hline
 \multicolumn{1}{|c|}{Average} & 1.700e-5 & 6.549e-2 & 3.944e-6 & 5.412e-2 & 1.271e-5 & 9.947e-2 \\ \hline
 \multicolumn{1}{|c|}{Standard Deviation} & 7.520e-6 & 7.578e-3 & 1.228e-6 & 1.902e-3 & 4.534e-6 & 5.001e-3 \\ \hline
-\end{tabular}\label{tab:bs_rmse}\vspace{0.1cm}
-\caption{Performance Analysis - RMSE in each setup}
+\end{tabular}\vspace{0.1cm}
+\caption{Performance Analysis - RMSE in each setup\label{tab:bs_rmse}}
 \end{table}
 \footnotetext[5]{corresponds to the setup in \ref{sec:setupmle}}
 \footnotetext[6]{corresponds to the setup in \ref{sec:setupomega20}}
@@ -467,8 +464,8 @@ The results indicate that a precise calculation of call option implied volatilit
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=\textwidth]{Robustness_Vola_Noise.png}
-\caption{Robustness test for the best fit dataset (cf. Section \ref{sec:setupomega20}) - pure dataset vs. dataset with $\pm 1\%$ noise in the train set volatilities}
-\label{fig:MLE_Price_NN_rel_err}
+\caption{Robustness test for the best fit dataset (cf. Section \ref{sec:setupomega20}) -  pure dataset vs. dataset with $\pm 1\%$ noise in the train set volatilities}
+\label{fig:MLE_Price_NN_rel_err_2}
 \end{figure}
 %\fi %zum Auskommentieren
 %=========================================================================
@@ -489,6 +486,7 @@ So far our findings imply that the performance is highly dependent on the qualit
 %============================================================
   \\ 
 The size reduction leads to an increase of mean relative error of 233.9\%. The maximal relative error increases by  59.8\%.  Furthermore the distribution of weights in the neural net is compared. 2-sample Kolmogorv-Smirnoff tests indicate significant change in distribution of weights in same layers (cf. Table \ref{tab:weights_size}. 
+\captionsetup{justification=centering}
 \begin{table}[!ht]
     \centering
     \begin{tabular}{|r|c|c|c|c|}\hline
@@ -497,7 +495,7 @@ The size reduction leads to an increase of mean relative error of 233.9\%. The m
     med. p-val & 1.672e-1 & 4.769e-2**& 3.772e-1& 2.708e-12***\\\hline
     max. p-val & 6.069e-1 & 5.342e-1& 9.653e-1& 6.194e-5***\\\hline
     \end{tabular}\vspace{0.1cm}
-    \caption{2-Sample-KS-test - Comparison of weights in Neural Nets}
+    \caption{Comparison of weights in Neural Nets - 2-Sample-KS-test\\ $\hspace{0.7cm}^*\backslash^{**}\backslash^{***}$ corresponds to significance at $10\%\backslash5\%\backslash1\%$.}
     \label{tab:weights_size}
 \end{table}\\
 The results of a 20\% size reduction are stated in Appendix \ref{app:robust_size}.
@@ -577,7 +575,7 @@ This section shows the results of a 20\% reduction of training set size (cf. Sec
     \centering
     \includegraphics[width=\textwidth]{RobustnessSize20p.png}
     \caption{Robustnesstest - Change in size of training set (20\%)}
-    \label{fig:trainset_sensitivity}
+    \label{fig:trainset_sensitivity_20p}
 \end{figure}
 %\fi
 %============
