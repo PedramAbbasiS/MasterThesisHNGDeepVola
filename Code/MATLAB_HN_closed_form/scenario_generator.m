@@ -1,13 +1,15 @@
 clearvars; clc;close all;
 load('/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/generaldata2015.mat')
 load('/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/params_Options_2015_MRAEfull.mat')
-load('weekly_2015_mle.mat')
+load('/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/weekly_2015_mle.mat')
+
+%%
 for i=1:47
     compare(i,1,:) = params_Q_mle_weekly(i,:);
     compare(i,2,:) = values{i}.hngparams;
 end
 for i = 1:length(values)
-    
+end
 %rng('default')
 %Maturity = [30, 60, 90, 120, 150];%, 180, 210, 240];%, 270, 300, 330, 360];
 Maturity = 30:30:240;

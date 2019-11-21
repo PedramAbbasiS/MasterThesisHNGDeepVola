@@ -1,4 +1,5 @@
-%HNG-Optimization under Q via real Optionpath = '/Users/User/Documents/GitHub/SeminarOptions/Data/Datasets';
+%HNG-Optimization under Q 
+%Options: path = '/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 clc; clearvars; close all;
 %delete(gcp('nocreate')
 %parpool()
