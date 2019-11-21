@@ -2,8 +2,8 @@
 clc; clearvars; close all;
 %delete(gcp('nocreate')
 %parpool()
-%path                =  '/Users/User/Documents/GitHub/SeminarOptions/Data/Datasets';
-path                =  '/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
+path                =  '/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
+%path                =  '/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           =  'SP500';
 year                =  2015;
 path_               =  strcat(path,'/',stock_ind,'/','Calls',num2str(year),'.mat');
@@ -36,7 +36,7 @@ for i=1:max(weeksprices)
     idx(:,i) = (weeksprices==i);
 end
 data = [OptionsStruct.price;OptionsStruct.maturity;OptionsStruct.strike;OptionsStruct.priceunderlying];
-
+save('generaldata2015.mat','data','DatesClean','OptionsStruct','OptFeatures','idx')
 %% Optiimization
 
 % Initialization

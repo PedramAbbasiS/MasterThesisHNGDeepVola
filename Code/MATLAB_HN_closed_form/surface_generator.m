@@ -38,7 +38,7 @@ if vecormat
     if saver
         name = strcat('surface',specs,num2str(year),stock_ind);
         save(name,'surface')
-    end
+        ends
 else 
     surface = surface_data;
     if saver
