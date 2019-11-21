@@ -2,7 +2,9 @@
 clc; clearvars; close all;
 %delete(gcp('nocreate')
 %parpool('local',2)
-path = '/Users/User/Documents/GitHub/SeminarOptions/Data/Datasets';
+%path = '/Users/User/Documents/GitHub/SeminarOptions/Data/Datasets';
+path = '/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
+
 stock_ind = 'SP500';
 year = 2015;
 load('weekly_2015_mle.mat')
@@ -54,22 +56,30 @@ opt_params_raw = zeros(max(weeksprices),4);
 opt_params_clean = zeros(max(weeksprices),4);
 values = cell(1,max(weeksprices));
 Init_scale = [];
-for i = 1:3%:max(weeksprices)
+for i = 1:max(weeksprices)
     data_week = data(:,logical(idx(:,i)))';
     if isempty(data_week)
         continue
     end
     lb = lb_mat(i,:);%lower parameter bounds, scaled
     ub = ub_mat(i,:); %upper parameter bounds, scaled
-    if isempty(Init_scale)
-        Init_scale = Init_scale_mat(i,:);
-    end
+
     %RMSE
     %f_min = @(params) sqrt(mean((price_Q(params.*sc_fac(i,:),data_week,r,sig2_0(i))'-data_week(:,1)).^2));
     %MRAE
     f_min = @(params) mean(abs(price_Q(params.*sc_fac(i,:),data_week,r,sig2_0(i))'-data_week(:,1))./data_week(:,1));
     
-    % Implement starting value check 
+    % Starting value check / semi globalization
+    if isempty(Init_scale)
+        Init_scale = Init_scale_mat(i,:);
+    else 
+        f1 = f_min(Init_scale);
+        f2 = f_min(Init_scale_mat(i,:));
+        if f2<f1
+             Init_scale = Init_scale_mat(i,:);
+        end
+    end
+    
     %SQP
     opt = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxIterations',20,'MaxFunctionEvaluations',150);
     % Interior Point
@@ -86,11 +96,11 @@ for i = 1:3%:max(weeksprices)
     struc.countneg =    sum(struc.hngPrice<=0);
     struc.matr =        [struc.Price;struc.hngPrice;struc.blsPrice];
     struc.maxAbsEr =    max(abs(struc.hngPrice-struc.Price));
-    struc.MeanRelEr =   mean(abs(struc.hngPrice-struc.Price)./struc.Price);
-    struc.MaxRelEr =    max(abs(struc.hngPrice-struc.Price)./struc.Price);
-    struc.rmse1 =       sqrt(mean((struc.hngPrice-struc.Price).^2));
-    struc.rmse2 =       sqrt(mean((struc.blsPrice-struc.Price).^2));
+    struc.MAPE =        mean(abs(struc.hngPrice-struc.Price)./struc.Price);
+    struc.MaxAPE =    max(abs(struc.hngPrice-struc.Price)./struc.Price);
+    struc.RMSE =       sqrt(mean((struc.hngPrice-struc.Price).^2));
+    struc.RMSEbls =       sqrt(mean((struc.blsPrice-struc.Price).^2));
     values{i} =struc;
     Init_scale = opt_params_raw(i,:);
 end
-%save('params_Options_2015_interior.mat','values3');
+save('params_Options_2015_MRAE.mat','values3');
