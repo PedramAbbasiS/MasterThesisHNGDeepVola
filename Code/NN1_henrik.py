@@ -19,7 +19,7 @@ import scipy
 import scipy.io
 #mat = scipy.io.loadmat('data_vola_4152_0005_09_11_30_240.mat')
 #mat = scipy.io.loadmat('data_price_20000_0005_09_11_30_240.mat')
-mat = scipy.io.loadmat('data_price_g_small_20000_08_12_0025.mat')
+mat = scipy.io.loadmat('data_price_1000_0005_09_11_30_240.mat')
 #data = mat['data_vola_clear']
 #data = mat['data_price_clear']
 data = mat['data']
