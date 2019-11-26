@@ -17,26 +17,15 @@ import scipy
 
 ###matlab
 import scipy.io
-#mat = scipy.io.loadmat('data_vola_4152_0005_09_11_30_240.mat')
-#mat = scipy.io.loadmat('data_price_20000_0005_09_11_30_240.mat')
-mat = scipy.io.loadmat('data_price_1000_0005_09_11_30_240.mat')
-#data = mat['data_vola_clear']
-#data = mat['data_price_clear']
-data = mat['data']
-#######
-#data = data[:20000,:]
-#data = np.load('data_test_small_new1.npy')
+mat = scipy.io.loadmat('data_price_1000_0005_09_11_30_210.mat')
+data = mat['data_price']
 Nparameters = 5
-maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240])
-#maturities = np.array([30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
-#strikes = np.array([0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
-#strikes = np.array([0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2])
-strikes = np.array([0.8,0.825,0.85,0.875,0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1,1.125,1.15,1.175,1.2])
-#strikes = np.array([0.9, 0.92, 0.94, 0.96, 0.98,1.0, 1.02, 1.04, 1.06, 1.08,1.1])
+maturities = np.array([30, 60, 90, 120, 150, 180, 210])
+strikes = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
 xx=data[:,:Nparameters]
-yy=data[:,Nparameters+1:]
+yy=data[:,Nparameters+2:]
 #yy=data[:,Nparameters:-13*4]
 #setA = {i for i in range(104)}
 #setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
@@ -115,12 +104,18 @@ NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_tr
     
 #==============================================================================
 #error plots
+# DIMENSION DO NOT FIT ERRORS ARE WRONG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 S0=1.
 y_test_re = yinversetransform(y_test_trafo)
-prediction=[yinversetransform(NN1.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
+prediction_list=[yinversetransform(NN1.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
+prediction = np.asarray(prediction_list)
+
+
+
 plt.figure(figsize=(14,4))
 ax=plt.subplot(1,3,1)
-err = np.mean(100*np.abs((y_test_re-prediction)/y_test_re),axis = 0)
+err = 100*np.mean(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Average relative error",fontsize=15,y=1.04)
 plt.imshow(err.reshape(Nmaturities,Nstrikes))
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
@@ -131,7 +126,7 @@ ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
 ax.set_yticklabels(maturities)
 plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
-
+plt.show()
 ax=plt.subplot(1,3,2)
 err = 100*np.std(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Std relative error",fontsize=15,y=1.04)
@@ -164,16 +159,16 @@ plt.show()
 
 
 #==============================================================================
-#vola surface
+#surface
 import random
 test_sample = random.randint(0,len(y_test))
 y_test_sample = y_test_re[test_sample,:]
-y_predict_sample = prediction[test_sample]
-
+y_predict_sample = prediction_list[test_sample]
 y_test_sample_p = np.reshape(y_test_sample, (Nmaturities, Nstrikes))
 y_predict_sample_p = np.reshape(y_predict_sample, (Nmaturities, Nstrikes))
 diff = y_test_sample_p-y_predict_sample_p 
-
+rel_diff = np.abs(y_test_sample_p-y_predict_sample_p)/(y_test_sample_p)
+    
 # This import registers the 3D projection, but is otherwise unused.
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from matplotlib import cm
@@ -189,13 +184,15 @@ X, Y = np.meshgrid(X, Y)
 
 
 #ax.contour3D(X, Y, Z, 50, cmap='binary')
-ax.plot_surface(X, Y, y_test_sample_p, rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.plot_surface(X, Y, y_predict_sample_p , rstride=1, cstride=1,
+#ax.plot_surface(X, Y, y_test_sample_p, rstride=1, cstride=1,
+#                cmap='viridis', edgecolor='none')
+#ax.plot_surface(X, Y, y_predict_sample_p , rstride=1, cstride=1,
+#                cmap='viridis', edgecolor='none')
+ax.plot_surface(X, Y, rel_diff, rstride=1, cstride=1,
                 cmap='viridis', edgecolor='none')
 ax.set_xlabel('Strikes')
 ax.set_ylabel('Maturities')
-ax.set_zlabel('Volatility');
+ax.set_zlabel('rel. err');
 plt.show()
 
 
