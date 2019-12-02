@@ -34,10 +34,10 @@ yy=data[:,Nparameters+2:]
 #####
 # split into train and test sample
 X_train, X_test, y_train, y_test = train_test_split(
-    xx, yy, test_size=0.15, random_state=42)
+    xx, yy, test_size=0.15)#, random_state=42)
 
 X_train, X_val, y_train, y_val = train_test_split(
-   X_train, y_train, test_size=0.15, random_state=42)
+   X_train, y_train, test_size=0.15)#, random_state=42)
 
 scale=StandardScaler()
 y_train_transform = scale.fit_transform(y_train)
@@ -78,7 +78,7 @@ NN1.add(InputLayer(input_shape=(Nparameters,)))
 NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(30, activation = 'elu'))
 #NN1.add(Dropout(0.05))
-NN1.add(Dense(30, activation = 'elu'))
+NN1.add(Dense(30, activation = 'relu', kernel_constraint=keras.constraints.NonNeg()))
 #NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
 NN1.summary()
@@ -115,6 +115,7 @@ prediction = np.asarray(prediction_list)
 
 plt.figure(figsize=(14,4))
 ax=plt.subplot(1,3,1)
+err_list = np.abs((y_test_re-prediction)/y_test_re)
 err = 100*np.mean(np.abs((y_test_re-prediction)/y_test_re),axis = 0)
 plt.title("Average relative error",fontsize=15,y=1.04)
 plt.imshow(err.reshape(Nmaturities,Nstrikes))
