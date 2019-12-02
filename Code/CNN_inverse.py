@@ -1,13 +1,19 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 28 13:27:14 2019
+
+@author: Henrik Brautmeier
+
+CNN for decoding!
+"""
+
 # Neuronal Network 1 for learning the implied vola 
-# source: https://github.com/amuguruza/NN-StochVol-Calibrations/blob/master/1Factor/Flat%20Forward%20Variance/NN1Factor.ipynb 
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import keras
-from keras.models import Sequential
-from keras.layers import InputLayer
-from keras.layers import Dense
-from keras.layers import Dropout
+from keras.models import Sequential,Model
+from keras.layers import InputLayer,Dense,Flatten, Conv2D, Dropout, Input
 from keras import backend as K
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -16,6 +22,12 @@ import time
 import scipy
 
 ###matlab
+def root_mean_squared_error(y_true, y_pred):
+        return K.sqrt(K.mean(K.square(y_pred - y_true)))
+    
+def root_relative_mean_squared_error(y_true, y_pred):
+        return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))    
+
 import scipy.io
 mat = scipy.io.loadmat('data_price_week_all_4700_0005_09_11_30_210.mat')
 data = mat['data_price']
@@ -24,74 +36,77 @@ maturities = np.array([30, 60, 90, 120, 150, 180, 210])
 strikes = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
 Nstrikes = len(strikes)   
 Nmaturities = len(maturities)   
-xx=data[:,:Nparameters]
-yy=data[:,Nparameters+2:]
-#yy=data[:,Nparameters:-13*4]
-#setA = {i for i in range(104)}
-#setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
-#yy = yy[:,list(setA.difference(setB))]
-
-#####
-# split into train and test sample
+yy=data[:,:Nparameters]
+xx=data[:,Nparameters+2:].reshape(4700,9,7,1)
 X_train, X_test, y_train, y_test = train_test_split(
     xx, yy, test_size=0.15, random_state=42)
 
 X_train, X_val, y_train, y_val = train_test_split(
    X_train, y_train, test_size=0.15, random_state=42)
-
+"""picture scaling needs to be adjusted
 scale=StandardScaler()
-y_train_transform = scale.fit_transform(y_train)
-y_val_transform   = scale.transform(y_val)
-y_test_transform  = scale.transform(y_test)
-def ytransform(y_train,y_val,y_test):
-    return [scale.transform(y_train),scale.transform(y_val), 
-            scale.transform(y_test)]
+x_train_transform = scale.fit_transform(X_train)
+x_val_transform   = scale.transform(X_val)
+x_test_transform  = scale.transform(X_test)
+def xtransform(x_train,x_val,x_test):
+    return [scale.transform(x_train),scale.transform(x_val), 
+            scale.transform(x_test)]
    
-def yinversetransform(y):
-    return scale.inverse_transform(y)
+def xinversetransform(x):
+    return scale.inverse_transform(x)
 
-[y_train_trafo, y_val_trafo, y_test_trafo]=ytransform(y_train, y_val, y_test)
+[X_train_trafo,X_val_trafo, X_test_trafo]=xtransform(X_train, X_val, X_test)
 
-ub=np.amax(xx, axis=0)
-lb=np.amin(xx, axis=0)
-def myscale(x):
+ub=np.amax(yy, axis=0)
+lb=np.amin(yy, axis=0)
+def myscale(y):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] - lb[i])
+        res[i]=(y[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] - lb[i])
         
     return res
-def myinverse(x):
+def myinverse(y):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=x[i]*(ub[i] - lb[i]) *0.5 + (ub[i] + lb[i])*0.5
+        res[i]=y[i]*(ub[i] - lb[i]) *0.5 + (ub[i] + lb[i])*0.5
         
     return res
 
 X_train_trafo = np.array([myscale(x) for x in X_train])
 X_val_trafo = np.array([myscale(x) for x in X_val])
 X_test_trafo = np.array([myscale(x) for x in X_test])
-
+"""
 #Neural Network
 keras.backend.set_floatx('float64')
-NN1 = Sequential()
-NN1.add(InputLayer(input_shape=(Nparameters,)))
-NN1.add(Dense(30, activation = 'elu'))
-NN1.add(Dense(30, activation = 'elu'))
-#NN1.add(Dropout(0.05))
-NN1.add(Dense(30, activation = 'elu'))
+NN1 = Sequential()#add model layers
+NN1.add(InputLayer(input_shape=(9,7,1)))
+NN1.add(Conv2D(64, kernel_size=3, activation='relu'))
+NN1.add(Conv2D(32, kernel_size=3, activation='relu'))
 #NN1.add(Dense(30, activation = 'elu'))
-NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
+#NN1.add(Dropout(0.05))
+NN1.add(Flatten())
+NN1.add(Dense(50, activation = 'elu'))
+NN1.add(Dense(5, activation='softmax'))
 NN1.summary()
 
-def root_mean_squared_error(y_true, y_pred):
-        return K.sqrt(K.mean(K.square(y_pred - y_true)))
-    
-def root_relative_mean_squared_error(y_true, y_pred):
-        return K.sqrt(K.mean(K.square(y_pred - y_true)/y_true))    
+input1 = Input(shape = (9,7,1))
+x1 = Conv2D(64, kernel_size=3, activation='relu')(input1)
+x2 = Conv2D(64, kernel_size=3, activation='relu')(x1)
+x3 = Flatten()(x2)
+x4 = Dense(50, activation = 'elu')(x3)
+seq1 = Dense(1, activation = 'linear')(x4)
+seq2 = Dense(1, activation = 'linear')(x4)
+seq3 = Dense(1, activation = 'linear')(x4)
+seq4 = Dense(1, activation = 'linear')(x4)
+seq5 = Dense(1, activation = 'linear')(x4)
+out1 = keras.layers.merge.concatenate([seq1, seq2, seq3,seq4,seq5], axis=-1)
+NN =Model(inputs=input1, outputs=out1)
+
         
-NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
-#NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
-NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
+#NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
+NN.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
+#NN1.compile(loss='categorical_crossentropy', optimizer = "adam")
+NN.fit(X_train, y_train, batch_size=32, validation_data = (X_val, y_val),
         epochs = 200, verbose = True, shuffle=1)
 #NN1.save_weights('NN_HNGarch_weights.h5')
 

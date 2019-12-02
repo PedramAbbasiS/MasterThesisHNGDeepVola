@@ -1,5 +1,5 @@
 function OptionPrice= HestonNandi_Q_vectorized(S_0,X,Sig_,T_,r,w,a,b,g_)
-work in progress
+work in progress % Only works in standardized setup, just for efficiency reasons
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % this function calculates the price of Call option based on the riskfree
 % transformed GARCH  option pricing formula of Heston and Nandi(2000). 
@@ -22,7 +22,15 @@ work in progress
 % Date:   Nov 2019
 % based on Code of Ali Boloorforoosh
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for T = T_
+pool_       = gcp();
+NStrikes    = length(K); 
+NMaturities = length(Maturities);
+pr(1:NStrikes*NMaturities) = parallel.FevalFuture;
+p = exp(-r*T).*K; %upper bound call
+p = p';
+for j =1:NMaturities
+    pr(j) = parfeval(pool_,@HestonNandi_Q_oneintegral,1,S(j),K(j),sig0,T(j),r,w,a,b,g);
+end
     
     OptionPrice = .5*(S_0-X*exp(-r*T))+1/pi*exp(-r*T)*integral(@Integrand,eps,1000);
     
@@ -53,9 +61,16 @@ for T = T_
 
     end
 end
+
+
+
+
+
+
+
+for j =1:NStrikes*NMaturities
+    [completedIdx,value] = fetchNext(pr,0.5); %shutdown after 0.5s for integral calc
+    p(completedIdx) = value;
 end
-
-
-
-
-
+cancel(pr)
+end

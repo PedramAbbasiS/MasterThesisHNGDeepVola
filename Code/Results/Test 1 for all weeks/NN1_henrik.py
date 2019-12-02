@@ -41,8 +41,8 @@ X_train, X_val, y_train, y_val = train_test_split(
 
 scale=StandardScaler()
 y_train_transform = scale.fit_transform(y_train)
-y_val_transform   = scale.transform(y_val)
-y_test_transform  = scale.transform(y_test)
+y_val_transform = scale.transform(y_val)
+y_test_transform = scale.transform(y_test)
 def ytransform(y_train,y_val,y_test):
     return [scale.transform(y_train),scale.transform(y_val), 
             scale.transform(y_test)]
@@ -90,7 +90,6 @@ def root_relative_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)/y_true))    
         
 NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
-#NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 200, verbose = True, shuffle=1)
 #NN1.save_weights('NN_HNGarch_weights.h5')
@@ -105,6 +104,7 @@ NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_tr
     
 #==============================================================================
 #error plots
+# DIMENSION DO NOT FIT ERRORS ARE WRONG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 S0=1.
 y_test_re = yinversetransform(y_test_trafo)
