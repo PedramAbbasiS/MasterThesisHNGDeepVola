@@ -10,6 +10,7 @@ for i=1:47
     compare(i,1,:) = params_Q_mle_weekly(i,:);
     compare(i,2,:) = values{i}.hngparams;
 end
+
 compare2 = permute(compare,[2,3,1]);
 %
 %rng('default')

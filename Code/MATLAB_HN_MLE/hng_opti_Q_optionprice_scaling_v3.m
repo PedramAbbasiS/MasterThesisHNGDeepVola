@@ -2,7 +2,7 @@
 %Options: path = '/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 clc; clearvars; close all;
 %delete(gcp('nocreate')
-%parpool()
+parpool()
 path                =  '/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 %path                =  '/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           =  'SP500';
@@ -63,7 +63,8 @@ for i = 1:max(weeksprices)
     % Algorithm
     % RMSE
     %f_min = @(params) sqrt(mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
-    % MRAE
+    % MRAE/MAPE
+    %%  UPDATE PRICING
     f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1))./data_week(:,1));
     % SQP
     opt = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxIterations',20,'MaxFunctionEvaluations',150);
