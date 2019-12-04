@@ -22,6 +22,7 @@ opt_ll = NaN*ones(num_week,1);
 params_mle_weekly=NaN*ones(num_week,6);
 hist_vola = NaN*ones(num_week,1);
 %% optimization
+% TODO SCALE PARAMETERS AS IN CALLOPTI!!!!!
 for i=1:num_week
     indicee = find(((dates(:,2)==i).*(dates(:,1)==year))==1,1,'first');
     if isempty(indicee)
