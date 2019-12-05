@@ -1,0 +1,9 @@
+5000 datapoints
+bounds: min/max of option params (47 weeks 2015 sp500 call) (a,b,g,w,h0)
+scenarios drawn uniform between those bounds
+price errors: 0< P(K,T) <= e(-rT)*K
+
+
+r=0.005
+gird: S/K = 0.9:0.025:1.1
+	T = 30:30:210

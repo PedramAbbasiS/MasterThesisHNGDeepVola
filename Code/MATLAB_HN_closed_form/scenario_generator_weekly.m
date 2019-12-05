@@ -1,3 +1,4 @@
+%% Initialisation
 clearvars; clc;close all;
 load('/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/generaldata2015.mat')
 load('/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/params_Options_2015_MRAEfull.mat')
@@ -35,7 +36,7 @@ fails = -2*2*N*Nsim;
 for i = 1:2*N*Nsim
     params = reshape(compare(idx_vec(i,1),idx_vec(i,2),:),1,4);
     price  = -ones(1,Nmaturities*Nstrikes);
-    while any(any(price < 0)) %|| any(any(price > 1.5*(S-min(K))))
+    while any(any(price < 0)) || any(any(price' > exp(-r*data_vec(:,2)).*data_vec(:,1))) %check for violation of intrinsiv bounds
         a = 1;
         b = 1;
         g = 1;
@@ -60,7 +61,50 @@ for i = 1:2*N*Nsim
     end
     scenario_data(i,:) = [a, b, g, w, Sig_,(a+w)/(1-a*g^2-b), b+a*g^2, price];%reshape(price', [1,Nstrikes*Nmaturities])];
 end
-%% Version with weekly szenario generation
+%% Version with maximal bounds  only Call-optimized params
+Nsim            = 5000;
+scenario_data   = zeros(Nsim, 7+Nstrikes*Nmaturities);
+fail1           = 0;
+fail2           = 0;
+params          = compare(:,2,:);
+min_            = reshape(min(params),1,4);
+max_            = reshape(max(params),1,4);
+Sig             = [min(sig2_0),max(sig2_0)];
+fprintf('%s','Generatiting Prices. Progress: 0%')
+for i = 1:Nsim
+    price = -ones(1,Nmaturities*Nstrikes);
+    count = 0;
+    while any(any(price < 0)) || any(any(price' > exp(-r/252*data_vec(:,2)/252).*data_vec(:,1))) %check for violation of intrinsiv bounds
+        count = count +1;
+        a = 1;
+        b = 1;
+        g = 1;
+        % ToDo: Optimize random draw to fit distribution better!!!
+        % (especially distribution of b+a*g^2)
+        fail2 = fail2-1;
+        while (b+a*g^2 >= 1)
+            a = min_(2)+(max_(2)-min_(2)).*rand(1,1);
+            b = min_(3)+(max_(3)-min_(3)).*rand(1,1);
+            g = min_(4)+(max_(4)-min_(4)).*rand(1,1);
+            fail2 = fail2 +1;
+        end
+        w       = min_(1)+(max_(1)-min_(1)).*rand(1,1);
+        %Sig_    = (w+a)/(1-a*g^2-b);
+        Sig_    = Sig(1)+(Sig(2)-Sig(1)).*rand(1,1);
+        price   = price_Q_clear([w,a,b,g],data_vec,r/252,Sig_);
+        fail1   = fail1+1;
+    end
+    fail1 = fail1-count;
+    if ismember(i,floor(Nsim*[1/(5*log10(Nsim*100)):1/(5*log10(Nsim*100)):1]))
+        fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%"),fprintf('\n')
+        fprintf('Number of fails'),disp([fail1,fail2])
+    end
+    scenario_data(i,:) = [a, b, g, w, Sig_,(a+w)/(1-a*g^2-b), b+a*g^2, price];%reshape(price', [1,Nstrikes*Nmaturities])];  
+end
+data_price = scenario_data;
+save(strcat('data_price_','maxbounds','_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
+
+%% Version with weekly bounds
 scenario_data   = zeros(Nsim*N, 7+Nstrikes*Nmaturities);
 count           = 1;
 fails = -Nsim;
@@ -71,11 +115,12 @@ for num_week = 1:N
     max_    = max(params);
     for i = 1:Nsim
         price = -ones(1,Nmaturities*Nstrikes);
-        while any(any(price < 0)) %|| any(any(price > 1.5*(S-min(K))))
+        while any(any(price < 0)) || any(any(price' > exp(-r*data_vec(:,2)).*data_vec(:,1))) %check for violation of intrinsiv bounds
             a = 1;
             b = 1;
             g = 1;
-            % Optimize random draw to fit distribution better!!!
+            % ToDo: Optimize random draw to fit distribution better!!!
+            % (especially distribution of b+a*g^2)
             while (b+a*g^2 >= 1)%||(b+a*g^2 <= 0.75)
                 a = min_(2)+(max_(2)-min_(2)).*rand(1,1);
                 b = min_(3)+(max_(3)-min_(3)).*rand(1,1);
@@ -95,8 +140,8 @@ for num_week = 1:N
     end
 end
 %%
-data_price = scenario_data;
-save(strcat('data_price_week_',num2str(num_week),'_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
+%data_price = scenario_data;
+%save(strcat('data_price_week_',num2str(num_week),'_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
 % Summary
     fprintf('\n')
     disp(strcat("rate/number of pos. price-data: ",num2str((sum(sum((scenario_data(:,8:end)>=0))))/(length(scenario_data)*Nmaturities*Nstrikes)*100),"% , ",num2str((sum(sum((scenario_data(:,8:end)>=0)))))));
@@ -110,8 +155,15 @@ save(strcat('data_price_week_',num2str(num_week),'_',num2str(length(data_price))
     disp(['median omega: ', num2str(median(scenario_data(:,4)))])
     disp(['median sigma: ', num2str(median(scenario_data(:,5)))])
     disp(['median stationary constraint: ', num2str(median(scenario_data(:,7)))])
-
-% Example plot
+figure
+subplot(2,3,1),hist(scenario_data(:,1));title('alpha')
+subplot(2,3,2),hist(scenario_data(:,2));title('beta')
+subplot(2,3,3),hist(scenario_data(:,3));title('gamma')
+subplot(2,3,4),hist(scenario_data(:,4));title('omega')
+subplot(2,3,5),hist(scenario_data(:,5));title('sigma')
+subplot(2,3,6),hist(scenario_data(:,7));title('constraint: b+a*g^2')
+    
+%% Example plot
 [X,Y]=meshgrid(K,Maturity);
 surf(X',Y',reshape(scenario_data(1,8:end),9,7));hold on;
 scatter3(data_vec(:,1),data_vec(:,2),scenario_data(1,8:end));

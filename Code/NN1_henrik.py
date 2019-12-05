@@ -17,21 +17,17 @@ import scipy
 
 ###matlab
 import scipy.io
-mat = scipy.io.loadmat('data_price_week_all_4700_0005_09_11_30_210.mat')
-data = mat['data_price']
+mat         = scipy.io.loadmat('data_price_maxbounds_5000_0005_09_11_30_210.mat')
+data        = mat['data_price']
 Nparameters = 5
-maturities = np.array([30, 60, 90, 120, 150, 180, 210])
-strikes = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
-Nstrikes = len(strikes)   
+maturities  = np.array([30, 60, 90, 120, 150, 180, 210])
+strikes     = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
+Nstrikes    = len(strikes)   
 Nmaturities = len(maturities)   
-xx=data[:,:Nparameters]
-yy=data[:,Nparameters+2:]
-#yy=data[:,Nparameters:-13*4]
-#setA = {i for i in range(104)}
-#setB = {0,1,11,12,13,14,24,25,26,27,37,38,39,40,50,51,52,53,63,64,65,66,76,77,78,79,89,90,91,92,102,103}
-#yy = yy[:,list(setA.difference(setB))]
+xx          = data[:,:Nparameters]
+yy          = data[:,Nparameters+2:]
 
-#####
+
 # split into train and test sample
 X_train, X_test, y_train, y_test = train_test_split(
     xx, yy, test_size=0.15)#, random_state=42)
@@ -46,30 +42,25 @@ y_test_transform  = scale.transform(y_test)
 def ytransform(y_train,y_val,y_test):
     return [scale.transform(y_train),scale.transform(y_val), 
             scale.transform(y_test)]
-   
 def yinversetransform(y):
     return scale.inverse_transform(y)
-
 [y_train_trafo, y_val_trafo, y_test_trafo]=ytransform(y_train, y_val, y_test)
-
 ub=np.amax(xx, axis=0)
 lb=np.amin(xx, axis=0)
 def myscale(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
         res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] - lb[i])
-        
     return res
 def myinverse(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
         res[i]=x[i]*(ub[i] - lb[i]) *0.5 + (ub[i] + lb[i])*0.5
-        
     return res
 
 X_train_trafo = np.array([myscale(x) for x in X_train])
-X_val_trafo = np.array([myscale(x) for x in X_val])
-X_test_trafo = np.array([myscale(x) for x in X_test])
+X_val_trafo   = np.array([myscale(x) for x in X_val])
+X_test_trafo  = np.array([myscale(x) for x in X_test])
 
 #Neural Network
 keras.backend.set_floatx('float64')
@@ -78,7 +69,7 @@ NN1.add(InputLayer(input_shape=(Nparameters,)))
 NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(30, activation = 'elu'))
 #NN1.add(Dropout(0.05))
-NN1.add(Dense(30, activation = 'relu', kernel_constraint=keras.constraints.NonNeg()))
+NN1.add(Dense(30, activation = 'relu', kernel_constraint = keras.constraints.NonNeg()))
 #NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
 NN1.summary()
@@ -87,9 +78,9 @@ def root_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))
     
 def root_relative_mean_squared_error(y_true, y_pred):
-        return K.sqrt(K.mean(K.square(y_pred - y_true)/y_true))    
+        return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))    
         
-NN1.compile(loss = root_mean_squared_error, optimizer = "adam")
+NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam")
 #NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 200, verbose = True, shuffle=1)
@@ -103,14 +94,14 @@ NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_tr
 #for i in range(len(error[0,:])):
 #    error1[i] = np.mean(error[:,i])
     
+
+
 #==============================================================================
 #error plots
-
 S0=1.
 y_test_re = yinversetransform(y_test_trafo)
 prediction_list=[yinversetransform(NN1.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
 prediction = np.asarray(prediction_list)
-
 
 
 plt.figure(figsize=(14,4))

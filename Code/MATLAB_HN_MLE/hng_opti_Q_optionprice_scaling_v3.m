@@ -40,7 +40,7 @@ data = [OptionsStruct.price;OptionsStruct.maturity;OptionsStruct.strike;OptionsS
 save('generaldata2015.mat','data','DatesClean','OptionsStruct','OptFeatures','idx')
 %% Optiimization
 
-% Initialization
+% Initialization     
 r                =   0.005/252;
 sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
@@ -111,5 +111,5 @@ for i = 1:max(weeksprices)
     struc.scale     =    scaler;
     scale_tmp       =   scaler;
     values{i}       =   struc;
-end
+end 
 save('params_Options_2015_MRAEfull.mat','values');
