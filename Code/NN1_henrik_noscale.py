@@ -5,7 +5,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import keras
 from keras.models import Sequential
-from keras.layers import InputLayer,Dense,Dropout,Conv2D,MaxPooling2D,ZeroPadding2D,Flatten
+from keras.layers import InputLayer
+from keras.layers import Dense
+from keras.layers import Dropout
 from keras import backend as K
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -33,9 +35,6 @@ X_train, X_test, y_train, y_test = train_test_split(
 X_train, X_val, y_train, y_val = train_test_split(
    X_train, y_train, test_size=0.15)#, random_state=42)
 
-Ntest= X_test.shape[0]
-Ntrain= X_train.shape[0]
-Nval= X_val.shape[0]
 scale=StandardScaler()
 y_train_transform = scale.fit_transform(y_train)
 y_val_transform   = scale.transform(y_val)
@@ -64,24 +63,16 @@ def myinverse(x):
 X_train_trafo = np.array([myscale(x) for x in X_train])
 X_val_trafo   = np.array([myscale(x) for x in X_val])
 X_test_trafo  = np.array([myscale(x) for x in X_test])
-X_train_trafo = np.array([myscale(x) for x in X_train])
-X_val_trafo   = np.array([myscale(x) for x in X_val])
-X_test_trafo  = X_test_trafo.reshape((Ntest,5,1,1))
-X_train_trafo = X_train_trafo.reshape((Ntrain,5,1,1))
-X_val_trafo   = X_val_trafo.reshape((Nval,5,1,1))
 
 #Neural Network
 keras.backend.set_floatx('float64')
-NN1 = Sequential() 
-NN1.add(InputLayer(input_shape=(Nparameters,1,1,)))
-NN1.add(ZeroPadding2D(padding=(2, 2)))
-NN1.add(Conv2D(4, (3, 1), padding='valid',strides =(1,1),activation='elu',use_cudnn_on_gpu=False))#X_train_trafo.shape[1:],activation='elu'))
-NN1.add(ZeroPadding2D(padding=(1,1)))
-NN1.add(Conv2D(10, (3, 3),padding='valid',strides =(1,1),activation ='elu',use_cudnn_on_gpu=False))
-NN1.add(MaxPooling2D(pool_size=(2, 1)))
-NN1.add(Dropout(0.25))
-NN1.add(Conv2D(60, (2, 2),padding='valid',strides =(2,1),activation ='elu',use_cudnn_on_gpu=False))
-NN1.add(Flatten())
+NN1 = Sequential()
+NN1.add(InputLayer(input_shape=(Nparameters,)))
+NN1.add(Dense(30, activation = 'elu'))
+NN1.add(Dense(30, activation = 'elu'))
+#NN1.add(Dropout(0.05))
+NN1.add(Dense(30, activation = 'relu'))
+#NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear', kernel_constraint = keras.constraints.NonNeg()))
 NN1.summary()
 
