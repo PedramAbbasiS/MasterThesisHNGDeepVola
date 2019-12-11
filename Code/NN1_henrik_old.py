@@ -17,8 +17,10 @@ import scipy
 
 # Data Import
 import scipy.io
-mat         = scipy.io.loadmat('data_price_maxbounds_5000_0005_09_11_30_210.mat')
-data        = mat['data_price']
+#mat         = scipy.io.loadmat('data_price_maxbounds_5000_0005_09_11_30_210.mat')
+#data        = mat['data_price']
+mat         = scipy.io.loadmat('data_vola_maxbounds_5000_0005_09_11_30_210.mat')
+data        = mat['data_vola']
 Nparameters = 5
 maturities  = np.array([30, 60, 90, 120, 150, 180, 210])
 strikes     = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
@@ -73,7 +75,14 @@ NN1.add(Dense(30, activation = 'relu'))
 #NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear', kernel_constraint = keras.constraints.NonNeg()))
 NN1.summary()
-
+#Neural Network Horvath
+NN2 = Sequential()
+NN2.add(InputLayer(input_shape=(Nparameters,)))
+NN2.add(Dense(30, activation = 'elu'))
+NN2.add(Dense(30, activation = 'elu'))
+NN2.add(Dense(30, activation = 'elu'))
+NN2.add(Dense(Nstrikes*Nmaturities, activation = 'linear'))
+NN2.summary()
 def root_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))
     
@@ -83,7 +92,7 @@ def root_relative_mean_squared_error_lasso(y_true, y_pred):
         return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))+1/np.linalg.norm(y_pred)  
                 
 #NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=root_mean_squared_error)
-NN1.compile(loss = "mean_squared_error", optimizer = "adam")
+NN1.compile(loss = "mean_squared_error", optimizer = "adam",metrics=["MAPE"])
 #NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
 #NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
@@ -190,9 +199,9 @@ plt.show()
 
 #==============================================================================
 #surface
-#import random
-#test_sample = random.randint(0,len(y_test))
-test_sample = idx[-1]
+import random
+test_sample = random.randint(0,len(y_test))
+#test_sample = idx[-1]
 y_test_sample = y_test_re[test_sample,:]
 y_predict_sample = prediction_list[test_sample]
 y_test_sample_p = np.reshape(y_test_sample, (Nmaturities, Nstrikes))

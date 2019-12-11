@@ -17,8 +17,11 @@ import scipy
 
 # Data Import
 import scipy.io
-mat         = scipy.io.loadmat('data_price_maxbounds_5000_0005_09_11_30_210.mat')
-data        = mat['data_price']
+#mat         = scipy.io.loadmat('data_price_maxbounds_5000_0005_09_11_30_210.mat')
+#data        = mat['data_price']
+mat         = scipy.io.loadmat('data_vola_maxbounds_5000_0005_09_11_30_210.mat')
+data        = mat['data_vola']
+
 Nparameters = 5
 maturities  = np.array([30, 60, 90, 120, 150, 180, 210])
 strikes     = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
@@ -182,7 +185,6 @@ ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
 ax.set_yticklabels(maturities)
 plt.xlabel("Strike",fontsize=15,labelpad=5)
 plt.ylabel("Maturity",fontsize=15,labelpad=5)
-
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.tight_layout()
 #plt.savefig('HNG_NNErrors.png', dpi=300)

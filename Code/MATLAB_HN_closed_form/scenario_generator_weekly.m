@@ -1,8 +1,8 @@
 %% Initialisation
 clearvars; clc;close all;
-load('/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/generaldata2015.mat')
-load('/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/params_Options_2015_MRAEfull.mat')
-load('/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/weekly_2015_mle.mat')
+load('/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/generaldata2015.mat')
+load('/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/params_Options_2015_MRAEfull.mat')
+load('/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/weekly_2015_mle.mat')
 %dimension 
 %for i = 48:53
 %   values{i} = struct();
@@ -102,7 +102,25 @@ for i = 1:Nsim
     scenario_data(i,:) = [a, b, g, w, Sig_,(a+w)/(1-a*g^2-b), b+a*g^2, price];%reshape(price', [1,Nstrikes*Nmaturities])];  
 end
 data_price = scenario_data;
-save(strcat('data_price_','maxbounds','_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
+price_vec  = zeros(1,Nmaturities*Nstrikes);
+bad_idx    = [];
+fprintf('%s','Calculating Imp Volas. Progress: 0%')
+for i = 1:Nsim
+    if ismember(i,floor(Nsim*[1/(5*log10(Nsim*100)):1/(5*log10(Nsim*100)):1]))
+        fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%"),fprintf('\n')
+    end
+    price_vec = data_price(i,8:end);
+    vola(i,:) = blsimpv_vec(data_vec,r,price_vec);
+    if any(isnan(vola(i,:)))
+        bad_idx(end+1) = i;
+    end
+end 
+idx               = setxor(1:Nsim,bad_idx);
+data_vola         = data_price(:,1:7);
+data_vola(:,8:70) = vola;
+data_vola         = data_vola(idx,:);
+%save(strcat('data_price_','maxbounds','_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
+save(strcat('data_vola_','maxbounds','_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_vola')
 
 %% Version with weekly bounds
 scenario_data   = zeros(Nsim*N, 7+Nstrikes*Nmaturities);
@@ -165,5 +183,5 @@ subplot(2,3,6),hist(scenario_data(:,7));title('constraint: b+a*g^2')
     
 %% Example plot
 [X,Y]=meshgrid(K,Maturity);
-surf(X',Y',reshape(scenario_data(1,8:end),9,7));hold on;
+surf(X',Y',reshape(data_vola(1,8:end),9,7));hold on;
 scatter3(data_vec(:,1),data_vec(:,2),scenario_data(1,8:end));
