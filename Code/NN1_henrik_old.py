@@ -52,12 +52,12 @@ lb=np.amin(xx, axis=0)
 def myscale(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] - lb[i])
+        res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] + lb[i])
     return res
 def myinverse(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=x[i]*(ub[i] - lb[i]) *0.5 + (ub[i] + lb[i])*0.5
+        res[i]=x[i]*(ub[i] + lb[i]) *0.5 + (ub[i] + lb[i])*0.5
     return res
 
 X_train_trafo = np.array([myscale(x) for x in X_train])
@@ -68,10 +68,10 @@ X_test_trafo  = np.array([myscale(x) for x in X_test])
 keras.backend.set_floatx('float64')
 NN1 = Sequential()
 NN1.add(InputLayer(input_shape=(Nparameters,)))
-NN1.add(Dense(30, activation = 'elu'))
-NN1.add(Dense(30, activation = 'elu'))
+NN1.add(Dense(30, activation = 'elu', use_bias=True))
+NN1.add(Dense(30, activation = 'elu', use_bias=True))
 #NN1.add(Dropout(0.05))
-NN1.add(Dense(30, activation = 'relu'))
+NN1.add(Dense(30, activation = 'relu', use_bias=True))
 NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear', use_bias=True,kernel_constraint = keras.constraints.NonNeg()))
 NN1.summary()
 #Neural Network Horvath
