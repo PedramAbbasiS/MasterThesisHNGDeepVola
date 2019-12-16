@@ -12,11 +12,12 @@ import matplotlib.ticker as mtick
 #import py_vollib.black_scholes.implied_volatility as vol
 import time
 import scipy
+import scipy.io
 
 # Data Import
-import scipy.io
-mat         = scipy.io.loadmat('data_price_maxbounds_5000_0005_09_11_30_210.mat')
-data        = mat['data_price']
+
+mat         = scipy.io.loadmat('data_vola_maxbounds_50000_0005_09_11_30_210.mat')
+data        = mat['data_vola']
 Nparameters = 5
 maturities  = np.array([30, 60, 90, 120, 150, 180, 210])
 strikes     = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
@@ -75,12 +76,12 @@ keras.backend.set_floatx('float64')
 NN1 = Sequential() 
 NN1.add(InputLayer(input_shape=(Nparameters,1,1,)))
 NN1.add(ZeroPadding2D(padding=(2, 2)))
-NN1.add(Conv2D(4, (3, 1), padding='valid',strides =(1,1),activation='elu',use_cudnn_on_gpu=False))#X_train_trafo.shape[1:],activation='elu'))
+NN1.add(Conv2D(4, (3, 1), padding='valid',strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
 NN1.add(ZeroPadding2D(padding=(1,1)))
-NN1.add(Conv2D(10, (3, 3),padding='valid',strides =(1,1),activation ='elu',use_cudnn_on_gpu=False))
+NN1.add(Conv2D(10, (3, 3),padding='valid',strides =(1,1),activation ='elu'))
 NN1.add(MaxPooling2D(pool_size=(2, 1)))
 NN1.add(Dropout(0.25))
-NN1.add(Conv2D(60, (2, 2),padding='valid',strides =(2,1),activation ='elu',use_cudnn_on_gpu=False))
+NN1.add(Conv2D(60, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
 NN1.add(Flatten())
 NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear', kernel_constraint = keras.constraints.NonNeg()))
 NN1.summary()
@@ -94,22 +95,23 @@ def root_relative_mean_squared_error_lasso(y_true, y_pred):
         return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))+1/np.linalg.norm(y_pred)  
                 
 #NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=root_mean_squared_error)
-NN1.compile(loss = "mean_squared_error", optimizer = "adam")
+NN1.compile(loss = "mean_squared_error", optimizer = "adam",metrics=["MAPE"])
 #NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
 #NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 200, verbose = True, shuffle=1)
 #NN1.save_weights('NN_HNGarch_weights.h5')
 
+#NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
+#NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
 
-    
 
 
 #==============================================================================
 #error plots
 S0=1.
 y_test_re       = yinversetransform(y_test_trafo)
-prediction_list = [yinversetransform(NN1.predict(X_test_trafo[i].reshape(1,Nparameters))[0]) for i in range(len(X_test_trafo))]
+prediction_list = NN1.predict(X_test_trafo)
 prediction      = np.asarray(prediction_list)
 Ntest           = prediction.shape[0]
 err_rel_list = np.abs((y_test_re-prediction)/y_test_re)
@@ -119,12 +121,12 @@ idx = np.argsort(np.max(err_rel_mat,axis=tuple([1,2])), axis=None)
 err_list = np.square((y_test_re-prediction))
 err_mat  = err_list.reshape((Ntest,Nmaturities,Nstrikes))
 bad_idx = idx
-from matplotlib.colors import LogNorm
+#from matplotlib.colors import LogNorm
 plt.figure(figsize=(14,4))
 ax=plt.subplot(2,3,1)
 err1 = 100*np.mean(err_rel_mat[bad_idx,:,:],axis=0)
 plt.title("Average relative error",fontsize=15,y=1.04)
-plt.imshow(err1,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
+plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.colorbar(format=mtick.PercentFormatter())
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
@@ -136,7 +138,7 @@ plt.ylabel("Maturity",fontsize=15,labelpad=5)
 ax=plt.subplot(2,3,2)
 err2 = 100*np.std(err_rel_mat[bad_idx,:,:],axis = 0)
 plt.title("Std relative error",fontsize=15,y=1.04)
-plt.imshow(err2,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
+plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
 plt.colorbar(format=mtick.PercentFormatter())
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
@@ -148,8 +150,9 @@ plt.ylabel("Maturity",fontsize=15,labelpad=5)
 ax=plt.subplot(2,3,3)
 err3 = 100*np.max(err_rel_mat[bad_idx,:,:],axis = 0)
 plt.title("Maximum relative error",fontsize=15,y=1.04)
-plt.imshow(err3,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
+plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
 plt.colorbar(format=mtick.PercentFormatter())
+plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
 ax.set_xticklabels(strikes)
 ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
@@ -159,9 +162,9 @@ plt.ylabel("Maturity",fontsize=15,labelpad=5)
 ax=plt.subplot(2,3,4)
 err1 = np.sqrt(np.mean(err_mat[bad_idx,:,:],axis=0))
 plt.title("RMSE",fontsize=15,y=1.04)
-plt.imshow(err1,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
+plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
+plt.colorbar(format=mtick.PercentFormatter())
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.colorbar()
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
 ax.set_xticklabels(strikes)
 ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
@@ -171,8 +174,8 @@ plt.ylabel("Maturity",fontsize=15,labelpad=5)
 ax=plt.subplot(2,3,5)
 err2 = np.std(err_mat[bad_idx,:,:],axis = 0)
 plt.title("Std MSE",fontsize=15,y=1.04)
-plt.imshow(err2,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar()
+plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
+plt.colorbar(format=mtick.PercentFormatter())
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
 ax.set_xticklabels(strikes)
@@ -183,8 +186,8 @@ plt.ylabel("Maturity",fontsize=15,labelpad=5)
 ax=plt.subplot(2,3,6)
 err3 = np.max(err_mat[bad_idx,:,:],axis = 0)
 plt.title("Maximum MSE",fontsize=15,y=1.04)
-plt.imshow(err3,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar()
+plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
+plt.colorbar(format=mtick.PercentFormatter())
 ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
 ax.set_xticklabels(strikes)
 ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
@@ -194,16 +197,17 @@ plt.ylabel("Maturity",fontsize=15,labelpad=5)
 
 plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 plt.tight_layout()
-#plt.savefig('HNG_NNErrors.png', dpi=300)
+
+plt.savefig('HNG_NNErrors_Cnn.png', dpi=300)
 plt.show()
 
 
 
 #==============================================================================
 #surface
-#import random
-#test_sample = random.randint(0,len(y_test))
-test_sample = idx[-1]
+import random
+test_sample = random.randint(0,len(y_test))
+#test_sample = idx[-1] #worst case
 y_test_sample = y_test_re[test_sample,:]
 y_predict_sample = prediction_list[test_sample]
 y_test_sample_p = np.reshape(y_test_sample, (Nmaturities, Nstrikes))
@@ -245,7 +249,7 @@ X_sample = X_test_trafo[sample_ind]
 y_sample = y_test[sample_ind]
 #print(scale.inverse_transform(y_sample))
 
-prediction=yinversetransform(NN1.predict(X_sample.reshape(1,Nparameters))[0])
+prediction=NN1.predict(X_sample.reshape(1,5,1,1)).reshape((Nstrikes*Nmaturities,))
 plt.figure(figsize=(14,12))
 for i in range(Nmaturities):
     plt.subplot(4,4,i+1)
@@ -260,7 +264,7 @@ for i in range(Nmaturities):
     
     plt.legend()
 plt.tight_layout()
-plt.savefig('HNG_smile.png', dpi=300)
+plt.savefig('HNG_smile_cnn.png', dpi=300)
 plt.show()
 
 #==============================================================================
@@ -338,7 +342,7 @@ for i in range(n):
     Approx.append(np.copy(solutions))
     Timing.append(np.copy(times))
 LMParameters=[Approx[i] for i in range(len(Approx))]
-#np.savetxt("NNParametersHNG.txt",LMParameters)
+#np.savetxt("NNParametersHNG_cnn.txt",LMParameters)
 
 #==============================================================================
 #Calibration Errors with Levenberg-Marquardt¶
@@ -362,7 +366,7 @@ for u in range(Nparameters):
 
     print("average= ",np.mean(average[u,:]))
 plt.tight_layout()
-plt.savefig('HNG_ParameterRelativeErrors.png', dpi=300)
+plt.savefig('HNG_ParameterRelativeErrors_cnn.png', dpi=300)
 plt.show()
 
 
@@ -399,7 +403,7 @@ plt.legend(['Neural Net','Black-Scholes'],fontsize=17)
 plt.ylabel('RMSE')
 plt.xlabel('Scenario')
 plt.title("RMSE of optimal parameters",fontsize=20)
-plt.savefig('RMSE_BS_Net.png', dpi=300)
+plt.savefig('RMSE_BS_Net_cnn.png', dpi=300)
     
 fig=plt.figure(figsize=(12,8))
 plt.plot(RMSE_opt,'b*')
@@ -458,7 +462,7 @@ plt.tick_params(axis='both', which='minor', labelsize=17)
 plt.xticks(np.arange(0, 101, step=10))
 plt.grid()
 plt.tight_layout()
-plt.savefig('HNG_ErrorCDF.png', dpi=300)
+plt.savefig('HNG_ErrorCDF_cnn.png', dpi=300)
 plt.show()
 
 #==============================================================================
@@ -482,4 +486,4 @@ RMSE_opt_real = np.sqrt(np.mean((surface-Y_pred_real)**2))
 err_real_mean = np.mean(100*np.abs((surface-Y_pred_real)/surface),axis = 1)
 err_real = (100*np.abs((surface-Y_pred_real)/surface)).reshape((Nmaturities, Nstrikes))
 diff = (Y_pred_real - surface).reshape((Nmaturities, Nstrikes))
-np.savetxt("SP500_pred_NN.txt",Y_pred_real)
+np.savetxt("SP500_pred_cNN.txt",Y_pred_real)

@@ -117,7 +117,7 @@ idx = np.argsort(np.max(err_rel_mat,axis=tuple([1,2])), axis=None)
 err_list = np.square((y_test_re-prediction))
 err_mat  = err_list.reshape((Ntest,Nmaturities,Nstrikes))
 bad_idx = idx
-from matplotlib.colors import LogNorm
+#from matplotlib.colors import LogNorm
 plt.figure(figsize=(14,4))
 ax=plt.subplot(2,3,1)
 err1 = 100*np.mean(err_rel_mat[bad_idx,:,:],axis=0)
