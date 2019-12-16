@@ -91,7 +91,7 @@ NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
 #NN1.add(MaxPooling2D(pool_size=(2, 1)))
 #NN1.add(Dropout(0.25))
 NN1.add(ZeroPadding2D(padding=(0,1)))
-NN1.add(Conv2D(Nstrikes, (2, 1),padding='valid',strides =(2,1),activation ='elu'))
+NN1.add(Conv2D(Nstrikes, (2, 1),padding='valid',strides =(2,1),activation ='linear', kernel_constraint = keras.constraints.NonNeg()))
 #NN1.add(MaxPooling2D(pool_size=(4, 1)))
 NN1.summary()
 
