@@ -217,12 +217,10 @@ plt.show()
 #==============================================================================
 #surface
 import random
-test_sample = random.randint(0,len(y_test))
-#test_sample = idx[-1] #worst case
-y_test_sample = y_test_re[test_sample,:]
-y_predict_sample = prediction_list[test_sample]
-y_test_sample_p = np.reshape(y_test_sample, (Nmaturities, Nstrikes))
-y_predict_sample_p = np.reshape(y_predict_sample, (Nmaturities, Nstrikes))
+#test_sample = random.randint(0,len(y_test))
+test_sample = idx[-1] #worst case
+y_predict_sample_p = prediction[test_sample,:,:]
+y_test_sample_p = y_test_re[test_sample,:,:]
 diff = y_test_sample_p-y_predict_sample_p 
 rel_diff = np.abs(y_test_sample_p-y_predict_sample_p)/(y_test_sample_p)
     
@@ -256,17 +254,17 @@ plt.show()
 #==============================================================================
 #smile
 sample_ind = test_sample
-X_sample = X_test_trafo[sample_ind]
+X_sample = X_test_trafo[sample_ind,:,:].reshape((Nparameters,))
 y_sample = y_test[sample_ind]
 #print(scale.inverse_transform(y_sample))
 
-prediction=NN1.predict(X_sample.reshape(1,5,1,1)).reshape((Nstrikes*Nmaturities,))
+prediction_sample=NN1.predict(X_sample.reshape(1,5,1,1)).reshape((Nstrikes*Nmaturities,))
 plt.figure(figsize=(14,12))
 for i in range(Nmaturities):
     plt.subplot(4,4,i+1)
     
     plt.plot(np.log(strikes/S0),y_sample[i*Nstrikes:(i+1)*Nstrikes],'b',label="Input data")
-    plt.plot(np.log(strikes/S0),prediction[i*Nstrikes:(i+1)*Nstrikes],'--r',label=" NN Approx")
+    plt.plot(np.log(strikes/S0),prediction_sample[i*Nstrikes:(i+1)*Nstrikes],'--r',label=" NN Approx")
     #plt.ylim(0.22, 0.26)
     
     plt.title("Maturity=%1.2f "%maturities[i])
