@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 import keras
 from keras.models import Sequential
 from keras.layers import InputLayer
-from keras.layers import Dense
+from keras.layers import Dense,Flatten
 from keras.layers import Dropout
 from keras import backend as K
 import matplotlib.pyplot as plt
@@ -72,8 +72,7 @@ NN1.add(Dense(30, activation = 'elu'))
 NN1.add(Dense(30, activation = 'elu'))
 #NN1.add(Dropout(0.05))
 NN1.add(Dense(30, activation = 'relu'))
-#NN1.add(Dense(30, activation = 'elu'))
-NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear', kernel_constraint = keras.constraints.NonNeg()))
+NN1.add(Dense(Nstrikes*Nmaturities, activation = 'linear', use_bias=True,kernel_constraint = keras.constraints.NonNeg()))
 NN1.summary()
 #Neural Network Horvath
 NN2 = Sequential()
@@ -93,7 +92,7 @@ def root_relative_mean_squared_error_lasso(y_true, y_pred):
                 
 #NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MSE"])
 NN1.compile(loss = "mean_squared_error", optimizer = "adam",metrics=["MAPE"])
-#NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
+#NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","mean_squared_error"])
 #NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 300, verbose = True, shuffle=1)
