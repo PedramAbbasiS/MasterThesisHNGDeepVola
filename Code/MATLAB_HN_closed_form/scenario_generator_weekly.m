@@ -62,7 +62,7 @@ for i = 1:2*N*Nsim
     scenario_data(i,:) = [a, b, g, w, Sig_,(a+w)/(1-a*g^2-b), b+a*g^2, price];%reshape(price', [1,Nstrikes*Nmaturities])];
 end
 %% Version with maximal bounds  only Call-optimized params
-Nsim            = 5000;
+Nsim            = 50000;
 scenario_data   = zeros(Nsim, 7+Nstrikes*Nmaturities);
 fail1           = 0;
 fail2           = 0;
@@ -73,9 +73,7 @@ Sig             = [min(sig2_0),max(sig2_0)];
 fprintf('%s','Generatiting Prices. Progress: 0%')
 for i = 1:Nsim
     price = -ones(1,Nmaturities*Nstrikes);
-    count = 0;
     while any(any(price < 0)) || any(any(price' > exp(-r/252*data_vec(:,2)/252).*data_vec(:,1))) %check for violation of intrinsiv bounds
-        count = count +1;
         a = 1;
         b = 1;
         g = 1;
@@ -94,7 +92,7 @@ for i = 1:Nsim
         price   = price_Q_clear([w,a,b,g],data_vec,r/252,Sig_);
         fail1   = fail1+1;
     end
-    fail1 = fail1-count;
+    fail1 = fail1-1;
     if ismember(i,floor(Nsim*[1/(5*log10(Nsim*100)):1/(5*log10(Nsim*100)):1]))
         fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%"),fprintf('\n')
         fprintf('Number of fails'),disp([fail1,fail2])
@@ -111,7 +109,7 @@ for i = 1:Nsim
     end
     price_vec = data_price(i,8:end);
     vola(i,:) = blsimpv_vec(data_vec,r,price_vec);
-    if any(isnan(vola(i,:)))
+    if any(isnan(vola(i,:))) || any(vola(i,:)==0)
         bad_idx(end+1) = i;
     end
 end 
@@ -119,7 +117,7 @@ idx               = setxor(1:Nsim,bad_idx);
 data_vola         = data_price(:,1:7);
 data_vola(:,8:70) = vola;
 data_vola         = data_vola(idx,:);
-%save(strcat('data_price_','maxbounds','_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
+save(strcat('data_price_','maxbounds','_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
 save(strcat('data_vola_','maxbounds','_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_vola')
 
 %% Version with weekly bounds
@@ -160,6 +158,7 @@ end
 %%
 %data_price = scenario_data;
 %save(strcat('data_price_week_',num2str(num_week),'_',num2str(length(data_price)),'_',num2str(r),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
+
 % Summary
     fprintf('\n')
     disp(strcat("rate/number of pos. price-data: ",num2str((sum(sum((scenario_data(:,8:end)>=0))))/(length(scenario_data)*Nmaturities*Nstrikes)*100),"% , ",num2str((sum(sum((scenario_data(:,8:end)>=0)))))));
