@@ -84,6 +84,8 @@ NN1.add(ZeroPadding2D(padding=(2,1)))
 NN1.add(Conv2D(32, (3, 3),padding='valid',strides =(1,1),activation ='elu'))
 NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
 NN1.add(ZeroPadding2D(padding=(1,1)))
+NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
+NN1.add(ZeroPadding2D(padding=(1,1)))
 
 NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
 #NN1.add(MaxPooling2D(pool_size=(2, 1)))
@@ -106,7 +108,7 @@ NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=
 #NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
 #NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_trafo, y_val_trafo),
-        epochs = 200, verbose = True, shuffle=1)
+        epochs = 50, verbose = True, shuffle=1)
 #NN1.save_weights('NN_HNGarch_weights.h5')
 
 #NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
