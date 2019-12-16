@@ -112,6 +112,8 @@ NN1.fit(X_train_trafo, y_train_trafo, batch_size=32, validation_data = (X_val_tr
 S0=1.
 y_test_re       = yinversetransform(y_test_trafo)
 prediction_list = NN1.predict(X_test_trafo)
+
+
 prediction      = np.asarray(prediction_list)
 Ntest           = prediction.shape[0]
 err_rel_list = np.abs((y_test_re-prediction)/y_test_re)

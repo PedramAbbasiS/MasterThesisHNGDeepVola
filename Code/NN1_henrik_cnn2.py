@@ -122,16 +122,15 @@ NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_tr
 #==============================================================================
 #error plots
 S0=1.
-y_test_re       = yinversetransform(y_test_trafo)
-prediction_list = NN1.predict(X_test_trafo)
-prediction      = np.asarray(prediction_list)
-Ntest           = prediction.shape[0]
-err_rel_list = np.abs((y_test_re-prediction)/y_test_re)
-err_rel_mat  = err_rel_list.reshape((Ntest,Nmaturities,Nstrikes))
+y_test_re       = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+prediction = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+err_rel_mat  = np.zeros(prediction.shape)
+err_mat  =np.zeros(prediction.shape)
+for i in range(Ntest):
+    err_rel_mat[i,:,:] =  np.abs((y_test_re[i,:,:]-prediction[i,:,:])/y_test_re[i,:,:])
+    err_mat[i,:,:] =  np.square((y_test_re[i,:,:]-prediction[i,:,:]))
 idx = np.argsort(np.max(err_rel_mat,axis=tuple([1,2])), axis=None)
 #bad_idx = idx[:-200]
-err_list = np.square((y_test_re-prediction))
-err_mat  = err_list.reshape((Ntest,Nmaturities,Nstrikes))
 bad_idx = idx
 #from matplotlib.colors import LogNorm
 plt.figure(figsize=(14,4))
@@ -256,7 +255,7 @@ plt.show()
 
 #==============================================================================
 #smile
-sample_ind = 13
+sample_ind = test_sample
 X_sample = X_test_trafo[sample_ind]
 y_sample = y_test[sample_ind]
 #print(scale.inverse_transform(y_sample))
@@ -276,7 +275,7 @@ for i in range(Nmaturities):
     
     plt.legend()
 plt.tight_layout()
-plt.savefig('HNG_smile_cnn.png', dpi=300)
+plt.savefig('HNG_smile_cnn2.png', dpi=300)
 plt.show()
 
 #==============================================================================
