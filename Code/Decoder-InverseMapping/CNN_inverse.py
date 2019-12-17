@@ -84,7 +84,7 @@ def root_relative_mean_squared_error_lasso(y_true, y_pred):
         return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))+1/np.linalg.norm(y_pred)  
 #Neural Network
 keras.backend.set_floatx('float64')
-""" encoder
+""" encoder"""
 NN1 = Sequential() 
 NN1.add(InputLayer(input_shape=(Nparameters,1,1,)))
 NN1.add(ZeroPadding2D(padding=(2, 2)))
@@ -107,8 +107,8 @@ NN1.summary()
 NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_trafo, y_val_trafo),
         epochs = 50, verbose = True, shuffle=1)
-"""
-#decoder
+NN1.save_weights('CNN2_weights.h5')
+"""decoder"""
 y_train_trafo2 = y_train_trafo.reshape((Ntrain,Nmaturities,Nstrikes,1))
 y_test_trafo2 = y_test_trafo.reshape((Ntest,Nmaturities,Nstrikes,1))
 y_val_trafo2 = y_val_trafo.reshape((Nval,Nmaturities,Nstrikes,1))
@@ -153,6 +153,7 @@ NN2.compile(loss ="MSE", optimizer = "adam",metrics=["MAPE", root_relative_mean_
 
 NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
         epochs = 50, verbose = True, shuffle=1)
+NN2.save_weights('CNN_inverse_weights.h5')
 
 
 prediction = NN2.predict(y_test_trafo2)
@@ -164,6 +165,31 @@ err1 = np.mean(error,axis = 0)
 err_std = np.std(error,axis = 0)
 idx = np.argsort(error[:,0], axis=None)
 good_idx = idx[:-100]
-from matplotlib.colors import LogNorm
 plt.boxplot(np.log(error))
+plt.show()
+
+prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
+forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
+y_true_test = y_test_trafo2.reshape(Ntest,Nmaturities,Nstrikes)
+
+# Make data.
+X = strikes
+Y = maturities
+X, Y = np.meshgrid(X, Y)
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+from matplotlib import cm
+import random
+sample_idx = random.randint(0,len(y_test))
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+#ax.contour3D(X, Y, Z, 50, cmap='binary')
+ax.plot_surface(X, Y, y_true_test[sample_idx,:,:], rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.plot_surface(X, Y, forecast[sample_idx,:,:] , rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+#ax.plot_surface(X, Y, rel_diff, rstride=1, cstride=1,
+#                cmap='viridis', edgecolor='none')
+ax.set_xlabel('Strikes')
+ax.set_ylabel('Maturities')
+#ax.set_zlabel('rel. err');
 plt.show()
