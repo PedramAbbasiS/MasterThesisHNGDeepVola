@@ -172,11 +172,11 @@ prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
 forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
 y_true_test = y_test_trafo2.reshape(Ntest,Nmaturities,Nstrikes)
 
-# Make data.
+# encoding decoding mapping
 X = strikes
 Y = maturities
 X, Y = np.meshgrid(X, Y)
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+from mpl_toolkits.mplot3d import Axes3D  
 from matplotlib import cm
 import random
 sample_idx = random.randint(0,len(y_test))
