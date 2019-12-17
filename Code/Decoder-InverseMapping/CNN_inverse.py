@@ -166,6 +166,7 @@ err_std = np.std(error,axis = 0)
 idx = np.argsort(error[:,0], axis=None)
 good_idx = idx[:-100]
 plt.boxplot(np.log(error))
+plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
 plt.show()
 
 prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
