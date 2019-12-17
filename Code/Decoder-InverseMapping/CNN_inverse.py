@@ -153,7 +153,7 @@ NN2.compile(loss ="MSE", optimizer = "adam",metrics=["MAPE", root_relative_mean_
 
 NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
         epochs = 50, verbose = True, shuffle=1)
-NN2.save_weights('CNN_inverse_weights.h5')
+
 
 
 prediction = NN2.predict(y_test_trafo2)
