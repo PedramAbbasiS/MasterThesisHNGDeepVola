@@ -16,11 +16,12 @@ from keras.layers import InputLayer,Dense,Flatten, Conv2D, Dropout, Input,ZeroPa
 from keras import backend as K
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import tensorflow as tf
 #import py_vollib.black_scholes.implied_volatility as vol
 #import time
 import scipy
 import scipy.io
-
+#alpha beta gamma omega sigma0
 # Data Import
 
 mat         = scipy.io.loadmat('data_vola_maxbounds_50000_0005_09_11_30_210.mat')
@@ -57,20 +58,17 @@ y_val_trafo =  np.asarray([y_val[i,:].reshape((1,Nmaturities,Nstrikes)) for i in
 y_test_trafo =  np.asarray([y_test[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntest)])
 ub=np.amax(xx, axis=0)
 lb=np.amin(xx, axis=0)
+diff = ub-lb
+bound_sum =ub+lb
 def myscale(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] + lb[i])
+        res[i]=(2*x[i] - (ub[i] + lb[i])) / (ub[i] - lb[i])
     return res
 def myinverse(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=x[i]*(ub[i] + lb[i]) *0.5 + (ub[i] + lb[i])*0.5
-    return res
-def inverse_loss(x):
-    res = K.zeros((Nparameters,))
-    for i in range(Nparameters):
-        res[i]=x[i]*(ub[i] + lb[i]) *0.5 + (ub[i] + lb[i])*0.5
+        res[i]=x[i]*(ub[i] - lb[i]) *0.5 + (ub[i] + lb[i])*0.5
     return res
 
 X_train_trafo = np.array([myscale(x) for x in X_train])
@@ -85,10 +83,6 @@ def root_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))   
 def root_relative_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))    
-def rel_mse_constraint(y_true, y_pred):
-        trafo = inverse_loss(y_pred)
-        constraint = np.asarray([trafo[i,1]*(trafo[i,3])**2+trafo[i,2] for i in range(K.shape(trafo)[0])])
-        return K.mean(K.square((y_pred - y_true)/y_true))+np.mean(constraint>=1) 
 #Neural Network
 keras.backend.set_floatx('float64')
 
@@ -131,12 +125,81 @@ NN2.add(Conv2D(64,(2, 2),padding='valid',strides =(1,1),activation ='tanh'))
 NN2.add(Flatten())
 NN2.add(Dense(5,activation = 'linear',use_bias=True))
 NN2.summary()
+
+def rmse_constraint(param):
+    def rel_mse_constraint(y_true, y_pred):
+            traf_a = 0.5*(y_pred[:,0]*diff[0]+bound_sum[0])
+            traf_g = 0.5*(y_pred[:,2]*diff[2]+bound_sum[2])
+            traf_b = 0.5*(y_pred[:,1]*diff[1]+bound_sum[1])
+            constraint = traf_a*K.square(traf_g)+traf_b
+            #constraint = K.variable(value=constraint, dtype='float64')
+            return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))  +param*K.mean(K.greater(constraint,1))
+    return rel_mse_constraint
+def mse_constraint(param):
+    def rel_mse_constraint(y_true, y_pred):
+            traf_a = 0.5*(y_pred[:,0]*diff[0]+bound_sum[0])
+            traf_g = 0.5*(y_pred[:,2]*diff[2]+bound_sum[2])
+            traf_b = 0.5*(y_pred[:,1]*diff[1]+bound_sum[1])
+            constraint = traf_a*K.square(traf_g)+traf_b
+            #constraint = K.variable(value=constraint, dtype='float64')
+            return tf.keras.losses.MSE( y_true, y_pred) +param*K.mean(K.greater(constraint,1))
+    return rel_mse_constraint
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NN2.compile(loss =rel_mse_constraint, optimizer = "adam",metrics=["MAPE", "MSE"])
-
+NN2.compile(loss =mse_constraint(param=0.1), optimizer = "adam",metrics=["MAPE", "MSE"])
+#NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
+#        epochs = 50, verbose = True, shuffle=1)
 NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
-        epochs = 50, verbose = True, shuffle=1)
+        epochs=50, verbose = True, shuffle=1)
 
 
+def constraint_violation(x):
+    return np.sum(x[:,0]*x[:,2]**2+x[:,1]>=1)/x.shape[0],x[:,0]*x[:,2]**2+x[:,1]>=1,x[:,0]*x[:,2]**2+x[:,1]
+prediction = NN2.predict(y_test_trafo2)
+
+prediction_invtrafo= np.array([myinverse(x) for x in prediction])
 
 prediction = NN2.predict(y_test_trafo2)
+prediction_std = np.std(prediction,axis=0)
+error = np.zeros((Ntest,Nparameters))
+for i in range(Ntest):
+    error[i,:] =  np.abs((X_test_trafo2[i,:]-prediction[i,:])/X_test_trafo2[i,:])
+err1 = np.mean(error,axis = 0)
+err2 = np.median(error,axis = 0)
+err_std = np.std(error,axis = 0)
+idx = np.argsort(error[:,0], axis=None)
+good_idx = idx[:-100]
+plt.boxplot(error)
+plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
+plt.show()
+print("error mean in %:",100*err1)
+print("error median in %:",100*err2)
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
+import matplotlib.transforms as mtransforms
+_,_,c =constraint_violation(prediction_invtrafo)
+_,_,c2 =constraint_violation(X_test)
+fig = plt.figure()
+plt.scatter(c2,c)
+plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
+plt.xlabel("True Constraint")
+plt.ylabel("Forecasted Constraint")
+plt.figure(figsize=(14,4))
+ax=plt.subplot(1,3,1)
+plt.yscale("log")
+plt.scatter(c2,error[:,0],label="alpha")
+plt.xlabel("True Constraint")
+plt.ylabel("Relative Deviation")
+plt.legend()
+ax=plt.subplot(1,3,2)
+plt.yscale("log")
+plt.scatter(c2,error[:,1],label="beta")
+plt.xlabel("True Constraint")
+plt.ylabel("Relative Deviation")
+plt.legend()
+ax=plt.subplot(1,3,3)
+plt.yscale("log")
+plt.scatter(c2,error[:,2],label="gamma")
+plt.xlabel("True Constraint")
+plt.ylabel("Relative Deviation")
+plt.legend()
