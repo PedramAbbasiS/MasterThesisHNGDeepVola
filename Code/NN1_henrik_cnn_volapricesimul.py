@@ -18,14 +18,17 @@ import scipy.io
 
 mat         = scipy.io.loadmat('data_vola_maxbounds_50000_0005_09_11_30_210.mat')
 data        = mat['data_vola']
+""" ADJUST INPUT of price data """
+#mat2         = scipy.io.loadmat('data_price_maxbounds_50000_0005_09_11_30_210.mat')
+#data2        = mat2['data_price']
+
 Nparameters = 5
 maturities  = np.array([30, 60, 90, 120, 150, 180, 210])
 strikes     = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1])
 Nstrikes    = len(strikes)   
 Nmaturities = len(maturities)   
-xx          = data[:,:Nparameters]
-yy          = data[:,Nparameters+2:]
-
+xx          = np.concatenate((data[:,:Nparameters],data2[:,:Nparameters]))
+yy          = np.concatenate((data[:,Nparameters+2:],data2[:,Nparameters+2:]))
 
 # split into train and test sample
 X_train, X_test, y_train, y_test = train_test_split(
@@ -57,12 +60,12 @@ lb=np.amin(xx, axis=0)
 def myscale(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] - lb[i])
+        res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] + lb[i])
     return res
 def myinverse(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=x[i]*(ub[i] - lb[i]) *0.5 + (ub[i] + lb[i])*0.5
+        res[i]=x[i]*(ub[i] + lb[i]) *0.5 + (ub[i] + lb[i])*0.5
     return res
 
 X_train_trafo = np.array([myscale(x) for x in X_train])
@@ -103,15 +106,10 @@ def root_mean_squared_error(y_true, y_pred):
     
 def root_relative_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))    
-def root_relative_mean_squared_error_convexity(param):
-    def help_error(y_true, y_pred):
-        for i in range(1,Nmaturities-1):
-            for j in range(1,Nstrikes-1):
-                convexity = K.mean(K.control_flow_ops.math_ops.logical_or(K.greater(0.5*(y_pred[:,0,i-1,j]+y_pred[:,0,i+1,j]),y_pred[:,0,i,j]),K.greater(0.5*(y_pred[:,0,i,j-1]+y_pred[:,0,i,j+1]),y_pred[:,0,i,j])))       
-        return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))+convexity*param
-    return help_error
+def root_relative_mean_squared_error_lasso(y_true, y_pred):
+        return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))+1/np.linalg.norm(y_pred)  
                 
-NN1.compile(loss = root_relative_mean_squared_error_convexity(param=0.001), optimizer = "adam",metrics=["MAPE","MSE"])
+NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 #NN1.compile(loss = "mean_squared_error", optimizer = "adam",metrics=["MAPE"])
 #NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
 #NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
