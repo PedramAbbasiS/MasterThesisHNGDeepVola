@@ -91,43 +91,37 @@ def root_relative_mean_squared_error_convexity(param):
     return help_error
 #Neural Network
 keras.backend.set_floatx('float64')
-saver = np.zeros(np.arange(0,0.6,0.05).shape)
-count = 0
-for param in np.arange(0,0.6,0.05):
-    NN1 = Sequential() 
-    NN1.add(InputLayer(input_shape=(Nparameters,1,1,)))
-    NN1.add(ZeroPadding2D(padding=(2, 2)))
-    NN1.add(Conv2D(32, (3, 1), padding='valid',strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-    NN1.add(ZeroPadding2D(padding=(1,1)))
-    NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(1,1),activation ='elu'))
-    NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
-    NN1.add(ZeroPadding2D(padding=(1,1)))
-    NN1.add(Conv2D(32, (3,3),padding='valid',strides =(2,1),activation ='elu'))
-    NN1.add(ZeroPadding2D(padding=(1,1)))
-    
-    NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
-    NN1.add(ZeroPadding2D(padding=(1,1)))
-    
-    NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
-    #NN1.add(MaxPooling2D(pool_size=(2, 1)))
-    #NN1.add(Dropout(0.25))
-    #NN1.add(ZeroPadding2D(padding=(0,1)))
-    NN1.add(Conv2D(Nstrikes, (2, 1),padding='valid',strides =(2,1),activation ='linear', kernel_constraint = keras.constraints.NonNeg()))
-    #NN1.add(MaxPooling2D(pool_size=(4, 1)))
-    #NN1.summary()
-    
-    
-                    
-    NN1.compile(loss = root_relative_mean_squared_error_convexity(param), optimizer = "adam",metrics=["MAPE","MSE"])
-    #NN1.compile(loss = "mean_squared_error", optimizer = "adam",metrics=["MAPE"])
-    #NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
-    #NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
-    NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_trafo, y_val_trafo),
-            epochs = 30, verbose = True, shuffle=1)
-    #NN1.save_weights('NN_HNGarch_weights.h5')
-    saver[count] = NN1.evaluate(X_val_trafo, y_val_trafo)[1]
-    print(count)
-    count += 1 
+NN1 = Sequential() 
+NN1.add(InputLayer(input_shape=(Nparameters,1,1,)))
+NN1.add(ZeroPadding2D(padding=(2, 2)))
+NN1.add(Conv2D(32, (3, 1), padding='valid',strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
+NN1.add(ZeroPadding2D(padding=(1,1)))
+NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(1,1),activation ='elu'))
+NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
+NN1.add(ZeroPadding2D(padding=(1,1)))
+NN1.add(Conv2D(32, (3,3),padding='valid',strides =(2,1),activation ='elu'))
+NN1.add(ZeroPadding2D(padding=(1,1)))
+
+NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
+NN1.add(ZeroPadding2D(padding=(1,1)))
+
+NN1.add(Conv2D(32, (2, 2),padding='valid',strides =(2,1),activation ='elu'))
+#NN1.add(MaxPooling2D(pool_size=(2, 1)))
+#NN1.add(Dropout(0.25))
+#NN1.add(ZeroPadding2D(padding=(0,1)))
+NN1.add(Conv2D(Nstrikes, (2, 1),padding='valid',strides =(2,1),activation ='linear', kernel_constraint = keras.constraints.NonNeg()))
+#NN1.add(MaxPooling2D(pool_size=(4, 1)))
+#NN1.summary()
+
+
+                
+NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+#NN1.compile(loss = "mean_squared_error", optimizer = "adam",metrics=["MAPE"])
+#NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
+#NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
+NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_trafo, y_val_trafo),
+        epochs = 30, verbose = True, shuffle=1)
+
 #NN1.compile(loss = root_relative_mean_squared_error_lasso, optimizer = "adam",metrics=[root_relative_mean_squared_error,"mean_squared_error"])
 #NN1.compile(loss = 'mean_absolute_percentage_error', optimizer = "adam")
 
@@ -138,26 +132,7 @@ plt.ylabel("validation error",fontsize=15,labelpad=5)
 plt.show()
 count = 0
 error = np.zeros(np.arange(0,0.6,0.05).shape)
-def convex_violation(y_pred):
-    error = np.zeros(y_pred.shape[0])
-    for i in range(Nmaturities):
-        if (i==0 or i==Nmaturities-1):
-            for j in range(1,Nstrikes-1):
-                convexity = y_pred[:,0,i,j]>0.5*(y_pred[:,0,i,j-1]+y_pred[:,0,i,j+1])       
-                error +=   convexity
 
-        else: 
-            for j in range(1,Nstrikes-1):
-                convexity = np.logical_or(y_pred[:,0,i,j]>0.5*(y_pred[:,0,i-1,j]+y_pred[:,0,i+1,j]),y_pred[:,0,i,j]>0.5*(y_pred[:,0,i,j-1]+y_pred[:,0,i,j+1]))       
-                error +=   convexity
-
-    for j in [0,Nstrikes-1]:
-        for i in range(1,Nmaturities-1):
-            convexity = y_pred[:,0,i,j]>0.5*(y_pred[:,0,i-1,j]+y_pred[:,0,i+1,j])     
-            error +=   convexity
-    mean_error = np.mean(error)
-    return  error,mean_error    
-       
 
 #==============================================================================
 #error plots

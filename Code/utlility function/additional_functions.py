@@ -17,7 +17,26 @@ def myinverse(x):
 # calculates number of constraint violations for parameter combinations
 def constraint_violation(x):
     return np.sum(x[:,0]*x[:,2]**2+x[:,1]>=1)/x.shape[0],x[:,0]*x[:,2]**2+x[:,1]>=1,x[:,0]*x[:,2]**2+x[:,1]  
+def convex_violation(y_pred):
+    error = np.zeros(y_pred.shape[0])
+    for i in range(Nmaturities):
+        if (i==0 or i==Nmaturities-1):
+            for j in range(1,Nstrikes-1):
+                convexity = y_pred[:,0,i,j]>0.5*(y_pred[:,0,i,j-1]+y_pred[:,0,i,j+1])       
+                error +=   convexity
 
+        else: 
+            for j in range(1,Nstrikes-1):
+                convexity = np.logical_or(y_pred[:,0,i,j]>0.5*(y_pred[:,0,i-1,j]+y_pred[:,0,i+1,j]),y_pred[:,0,i,j]>0.5*(y_pred[:,0,i,j-1]+y_pred[:,0,i,j+1]))       
+                error +=   convexity
+
+    for j in [0,Nstrikes-1]:
+        for i in range(1,Nmaturities-1):
+            convexity = y_pred[:,0,i,j]>0.5*(y_pred[:,0,i-1,j]+y_pred[:,0,i+1,j])     
+            error +=   convexity
+    mean_error = np.mean(error)
+    return  error,mean_error    
+       
 
 
 def root_mean_squared_error(y_true, y_pred):

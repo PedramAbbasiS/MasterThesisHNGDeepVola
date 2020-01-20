@@ -106,26 +106,6 @@ seq5 = Dense(1, activation = 'linear',use_bias=True)(x4)
 out1 = keras.layers.merge.concatenate([seq1, seq2, seq3,seq4,seq5], axis=-1)
 NN2 = Model(inputs=input1, outputs=out1)
 """
-NN2 = Sequential() 
-NN2.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
-NN2.add(Conv2D(64,(3, 3),padding='valid',strides =(1,1),activation ='tanh'))
-NN2.add(Conv2D(64,(2, 2),padding='valid',strides =(1,1),activation ='tanh'))
-NN2.add(MaxPooling2D(pool_size=(2, 2)))
-NN2.add(Conv2D(64,(2, 2),padding='valid',strides =(1,1),activation ='tanh'))
-NN2.add(ZeroPadding2D(padding=(1,1)))
-NN2.add(Conv2D(64,(2, 2),padding='valid',strides =(1,1),activation ='tanh'))
-NN2.add(ZeroPadding2D(padding=(1,1)))
-NN2.add(Conv2D(64,(2, 2),padding='valid',strides =(1,1),activation ='tanh'))
-NN2.add(Conv2D(64,(2, 2),padding='valid',strides =(1,1),activation ='tanh'))
-NN2.add(ZeroPadding2D(padding=(1,1)))
-NN2.add(Conv2D(64,(2, 2),padding='valid',strides =(1,1),activation ='tanh'))
-NN2.add(ZeroPadding2D(padding=(1,1)))
-NN2.add(Conv2D(64,(2, 2),padding='valid',strides =(1,1),activation ='tanh'))
-
-NN2.add(Flatten())
-NN2.add(Dense(5,activation = 'linear',use_bias=True))
-NN2.summary()
-
 def rmse_constraint(param):
     def rel_mse_constraint(y_true, y_pred):
             traf_a = 0.5*(y_pred[:,0]*diff[0]+bound_sum[0])
@@ -144,13 +124,76 @@ def mse_constraint(param):
             #constraint = K.variable(value=constraint, dtype='float64')
             return tf.keras.losses.MSE( y_true, y_pred) +param*K.mean(K.greater(constraint,1))
     return rel_mse_constraint
+"""best_loss = 999
+params = np.asarray([0,0.25])
+saver = np.zeros(params.shape)
+count = 0
+for param in params:
+    NN2 = Sequential() 
+    NN2.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
+    NN2.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
+    NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+    NN2.add(MaxPooling2D(pool_size=(2, 2)))
+    NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+    NN2.add(ZeroPadding2D(padding=(1,1)))
+    NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+    NN2.add(ZeroPadding2D(padding=(1,1)))
+    NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+    NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+    NN2.add(ZeroPadding2D(padding=(1,1)))
+    NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+    NN2.add(ZeroPadding2D(padding=(1,1)))
+    NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+    NN2.add(Flatten())
+    NN2.add(Dense(5,activation = 'linear',use_bias=True))
+    #NN2.summary()
+
+
+    #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+    NN2.compile(loss =mse_constraint(param), optimizer = "adam",metrics=["MAPE", "MSE"])
+    #NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
+    #        epochs = 50, verbose = True, shuffle=1)
+    history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
+        epochs=15, verbose = True, shuffle=1)
+    saver[count] = history.history["mean_absolute_percentage_error"][-1]
+    if history.history["mean_absolute_percentage_error"][-1] <best_loss :
+        best_loss = history.history["mean_absolute_percentage_error"][-1]
+        best_history = history
+        best_param = param
+        NN2.save('best_model.h5')
+    count += 1
+
+fig = plt.figure()
+plt.scatter(params,saver)
+# Recreate the exact same model purely from the file
+best_model= keras.models.load_model('best_model.h5')
+"""
+NN2 = Sequential() 
+NN2.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
+NN2.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(MaxPooling2D(pool_size=(2, 2)))
+NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(ZeroPadding2D(padding=(1,1)))
+NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(ZeroPadding2D(padding=(1,1)))
+NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(ZeroPadding2D(padding=(1,1)))
+NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(ZeroPadding2D(padding=(1,1)))
+NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(Flatten())
+NN2.add(Dense(5,activation = 'linear',use_bias=True))
+#NN2.summary()
+
+
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NN2.compile(loss =mse_constraint(param=0.1), optimizer = "adam",metrics=["MAPE", "MSE"])
+NN2.compile(loss =mse_constraint(param=0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
 #NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
 #        epochs = 50, verbose = True, shuffle=1)
-NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
-        epochs=50, verbose = True, shuffle=1)
-
+history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
+    epochs=15, verbose = True, shuffle=1)
 
 def constraint_violation(x):
     return np.sum(x[:,0]*x[:,2]**2+x[:,1]>=1)/x.shape[0],x[:,0]*x[:,2]**2+x[:,1]>=1,x[:,0]*x[:,2]**2+x[:,1]
@@ -168,8 +211,12 @@ err2 = np.median(error,axis = 0)
 err_std = np.std(error,axis = 0)
 idx = np.argsort(error[:,0], axis=None)
 good_idx = idx[:-100]
+
+fig = plt.figure()
 plt.boxplot(error)
+plt.yscale("log")
 plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
+plt.ylabel("Errors")
 plt.show()
 print("error mean in %:",100*err1)
 print("error median in %:",100*err2)
@@ -179,11 +226,15 @@ import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
 _,_,c =constraint_violation(prediction_invtrafo)
 _,_,c2 =constraint_violation(X_test)
+
+
 fig = plt.figure()
 plt.scatter(c2,c)
 plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
 plt.xlabel("True Constraint")
 plt.ylabel("Forecasted Constraint")
+
+
 plt.figure(figsize=(14,4))
 ax=plt.subplot(1,3,1)
 plt.yscale("log")
@@ -203,3 +254,34 @@ plt.scatter(c2,error[:,2],label="gamma")
 plt.xlabel("True Constraint")
 plt.ylabel("Relative Deviation")
 plt.legend()
+
+fig = plt.figure()
+plt.scatter(c2,c)
+plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
+plt.xlabel("True Constraint")
+plt.ylabel("Forecasted Constraint")
+
+
+plt.figure(figsize=(14,4))
+ax=plt.subplot(1,3,1)
+plt.yscale("log")
+plt.xscale("log")
+plt.scatter(abs((c2-c)/c2),error[:,0],label="alpha")
+plt.xlabel("constraint deviation")
+plt.ylabel("Relative Deviation")
+plt.legend()
+ax=plt.subplot(1,3,2)
+plt.yscale("log")
+plt.xscale("log")
+plt.scatter(abs((c2-c)/c2),error[:,1],label="beta")
+plt.xlabel("constraint deviation")
+plt.ylabel("Relative Deviation")
+plt.legend()
+ax=plt.subplot(1,3,3)
+plt.yscale("log")
+plt.xscale("log")
+plt.scatter(abs((c2-c)/c2),error[:,2],label="gamma")
+plt.xlabel("constraint deviation")
+plt.ylabel("Relative Deviation")
+plt.legend()
+

@@ -52,12 +52,12 @@ lb=np.amin(xx, axis=0)
 def myscale(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] + lb[i])
+        res[i]=(x[i] - (ub[i] + lb[i])*0.5) * 2 / (ub[i] - lb[i])
     return res
 def myinverse(x):
     res=np.zeros(Nparameters)
     for i in range(Nparameters):
-        res[i]=x[i]*(ub[i] + lb[i]) *0.5 + (ub[i] + lb[i])*0.5
+        res[i]=x[i]*(ub[i] - lb[i]) *0.5 + (ub[i] + lb[i])*0.5
     return res
 
 X_train_trafo = np.array([myscale(x) for x in X_train])
