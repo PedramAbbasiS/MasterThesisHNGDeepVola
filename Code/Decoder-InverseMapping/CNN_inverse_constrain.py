@@ -9,7 +9,7 @@ CNN for decoding!
 # Neuronal Network 1 for learning the implied vola 
 import numpy as np
 from sklearn.model_selection import train_test_split
-#from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler
 import keras
 from keras.models import Sequential,Model
 from keras.layers import InputLayer,Dense,Flatten, Conv2D, Dropout, Input,ZeroPadding2D,MaxPooling2D
@@ -45,13 +45,17 @@ X_train, X_val, y_train, y_val = train_test_split(
 Ntest= X_test.shape[0]
 Ntrain= X_train.shape[0]
 Nval= X_val.shape[0]
+scale = StandardScaler()
+y_train_transform = scale.fit_transform(y_train)
+y_test_transform = scale.transform(y_test)
+y_val_transform = scale.transform(y_val)
 def ytransform(y_train,y_val,y_test):
-    #return [scale.transform(y_train),scale.transform(y_val), 
-    #        scale.transform(y_test)]
+    return [scale.transform(y_train),scale.transform(y_val), 
+            scale.transform(y_test)]
     return [y_train,y_val,y_test]
 def yinversetransform(y):
     return y
-    #return scale.inverse_transform(y)
+    return scale.inverse_transform(y)
 [y_train_trafo, y_val_trafo, y_test_trafo]=ytransform(y_train, y_val, y_test)
 y_train_trafo = np.asarray([y_train[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntrain)])
 y_val_trafo =  np.asarray([y_val[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Nval)])
@@ -193,7 +197,7 @@ NN2.compile(loss =mse_constraint(param=0.25), optimizer = "adam",metrics=["MAPE"
 #NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
 #        epochs = 50, verbose = True, shuffle=1)
 history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
-    epochs=15, verbose = True, shuffle=1)
+    epochs=35, verbose = True, shuffle=1)
 
 def constraint_violation(x):
     return np.sum(x[:,0]*x[:,2]**2+x[:,1]>=1)/x.shape[0],x[:,0]*x[:,2]**2+x[:,1]>=1,x[:,0]*x[:,2]**2+x[:,1]
@@ -201,7 +205,6 @@ prediction = NN2.predict(y_test_trafo2)
 
 prediction_invtrafo= np.array([myinverse(x) for x in prediction])
 
-prediction = NN2.predict(y_test_trafo2)
 prediction_std = np.std(prediction,axis=0)
 error = np.zeros((Ntest,Nparameters))
 for i in range(Ntest):
@@ -212,7 +215,8 @@ err_std = np.std(error,axis = 0)
 idx = np.argsort(error[:,0], axis=None)
 good_idx = idx[:-100]
 
-fig = plt.figure()
+plt.figure(figsize=(14,4))
+ax=plt.subplot(1,3,1)
 plt.boxplot(error)
 plt.yscale("log")
 plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
@@ -228,6 +232,30 @@ _,_,c =constraint_violation(prediction_invtrafo)
 _,_,c2 =constraint_violation(X_test)
 
 
+testing_violation = c>=1
+testing_violation2 = (c<1)
+vio_error = error[testing_violation,:]
+vio_error2 = error[testing_violation2,:]
+ax=plt.subplot(1,3,2)
+
+plt.boxplot(vio_error)
+plt.yscale("log")
+plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
+plt.ylabel("Errors parameter violation")
+plt.show()
+ax=plt.subplot(1,3,3)
+
+plt.boxplot(vio_error2)
+plt.yscale("log")
+plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
+plt.ylabel("Errors no parameter violation")
+plt.show()
+print("violation error mean in %:",100*np.mean(vio_error,axis=0))
+print("no violation error mean in %:",100*np.mean(vio_error2,axis=0))
+print("violation error median in %:",100*np.median(vio_error,axis=0))
+print("no violation error median in %:",100*np.median(vio_error2,axis=0))
+
+
 fig = plt.figure()
 plt.scatter(c2,c)
 plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
@@ -236,52 +264,85 @@ plt.ylabel("Forecasted Constraint")
 
 
 plt.figure(figsize=(14,4))
-ax=plt.subplot(1,3,1)
+ax=plt.subplot(1,5,1)
 plt.yscale("log")
-plt.scatter(c2,error[:,0],label="alpha")
+plt.scatter(c2[testing_violation2],vio_error2[:,0],c="r",s=1,marker="x",label="alpha no con")
+plt.scatter(c2[testing_violation],vio_error[:,0],c="b",s=1,marker="x",label="alpha con")
 plt.xlabel("True Constraint")
 plt.ylabel("Relative Deviation")
 plt.legend()
-ax=plt.subplot(1,3,2)
+ax=plt.subplot(1,5,2)
 plt.yscale("log")
-plt.scatter(c2,error[:,1],label="beta")
+plt.scatter(c2[testing_violation2],vio_error2[:,1],c="r",s=1,marker="x",label="beta no con")
+plt.scatter(c2[testing_violation],vio_error[:,1],c="b",s=1,marker="x",label="beta con")
 plt.xlabel("True Constraint")
 plt.ylabel("Relative Deviation")
 plt.legend()
-ax=plt.subplot(1,3,3)
+ax=plt.subplot(1,5,3)
 plt.yscale("log")
-plt.scatter(c2,error[:,2],label="gamma")
+plt.scatter(c2[testing_violation2],vio_error2[:,2],c="r",s=1,marker="x",label="gamma no con")
+plt.scatter(c2[testing_violation],vio_error[:,2],c="b",s=1,marker="x",label="gamma con")
 plt.xlabel("True Constraint")
 plt.ylabel("Relative Deviation")
 plt.legend()
-
+ax=plt.subplot(1,5,4)
+plt.yscale("log")
+plt.scatter(c2[testing_violation2],vio_error2[:,3],c="r",s=1,marker="x",label="omega no con")
+plt.scatter(c2[testing_violation],vio_error[:,3],c="b",s=1,marker="x",label="omega con")
+plt.xlabel("True Constraint")
+plt.ylabel("Relative Deviation")
+plt.legend()
+ax=plt.subplot(1,5,5)
+plt.yscale("log")
+plt.scatter(c2[testing_violation2],vio_error2[:,4],c="r",s=1,marker="x",label="sigma0 no con")
+plt.scatter(c2[testing_violation],vio_error[:,4],c="b",s=1,marker="x",label="sigma0 con")
+plt.xlabel("True Constraint")
+plt.ylabel("Relative Deviation")
+plt.legend()
 fig = plt.figure()
 plt.scatter(c2,c)
 plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
 plt.xlabel("True Constraint")
 plt.ylabel("Forecasted Constraint")
 
-
 plt.figure(figsize=(14,4))
-ax=plt.subplot(1,3,1)
+ax=plt.subplot(1,5,1)
 plt.yscale("log")
 plt.xscale("log")
-plt.scatter(abs((c2-c)/c2),error[:,0],label="alpha")
+plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,0],c="r",s=1,marker="x",label="alpha no con")
+plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,0],c="b",s=1,marker="x",label="alpha con")
 plt.xlabel("constraint deviation")
 plt.ylabel("Relative Deviation")
 plt.legend()
-ax=plt.subplot(1,3,2)
+ax=plt.subplot(1,5,2)
 plt.yscale("log")
 plt.xscale("log")
-plt.scatter(abs((c2-c)/c2),error[:,1],label="beta")
+plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,1],c="r",s=1,marker="x",label="beta no con")
+plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,1],c="b",s=1,marker="x",label="beta con")
 plt.xlabel("constraint deviation")
 plt.ylabel("Relative Deviation")
 plt.legend()
-ax=plt.subplot(1,3,3)
+ax=plt.subplot(1,5,3)
 plt.yscale("log")
 plt.xscale("log")
-plt.scatter(abs((c2-c)/c2),error[:,2],label="gamma")
+plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,2],c="r",s=1,marker="x",label="gamma no con")
+plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,2],c="b",s=1,marker="x",label="gamma con")
 plt.xlabel("constraint deviation")
 plt.ylabel("Relative Deviation")
 plt.legend()
-
+ax=plt.subplot(1,5,4)
+plt.yscale("log")
+plt.xscale("log")
+plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,3],c="r",s=1,marker="x",label="omega no con")
+plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,3],c="b",s=1,marker="x",label="omega con")
+plt.xlabel("constraint deviation")
+plt.ylabel("Relative Deviation")
+plt.legend()
+ax=plt.subplot(1,5,5)
+plt.yscale("log")
+plt.xscale("log")
+plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,4],c="r",s=1,marker="x",label="sigma0 no con")
+plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,4],c="b",s=1,marker="x",label="sigma0 con")
+plt.xlabel("constraint deviation")
+plt.ylabel("Relative Deviation")
+plt.legend()
