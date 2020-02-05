@@ -9,7 +9,8 @@ import matplotlib.ticker as mtick
 #from matplotlib.ticker import LinearLocator, FormatStrFormatter
 #from mpl_toolkits.mplot3d import Axes3D  
 #from matplotlib import cm
-
+import cmath
+import math
 
 ### scaling tools
 def ytransform(y_train,y_val,y_test):
@@ -154,3 +155,87 @@ def pricing_plotter(prediction,y_test):
     plt.tight_layout()
     plt.show()
     return err_rel_mat,err_mat,idx,bad_idx
+
+
+### Heston Nandi Pricer
+"""
+Heston Nandi GARCH Option Pricing Model (2000) 
+Based on the code of Dustin Zacharias, MIT, 2017
+Code Available under https://github.com/SW71X/hngoption2
+"""
+# Trapezoidal Rule passing two vectors
+def trapz(X, Y):
+    n = len(X)
+    sum = 0.0
+    for i in range(1, n):
+        sum += 0.5 * (X[i] - X[i - 1]) * (Y[i - 1] + Y[i])
+    return sum
+
+# HNC_f returns the real part of the Heston & Nandi integral with Q parameers
+def HNC_f_Q(complex_phi, d_alpha, d_beta, d_gamma_star, d_omega, d_V, d_S, d_K, d_r, i_T, i_FuncNum):
+    A = [x for x in range(i_T + 1)]
+    B = [x for x in range(i_T + 1)]
+    complex_zero = complex(0.0, 0.0)
+    complex_one = complex(1.0, 0.0)
+    complex_i = complex(0.0, 1.0)
+    A[i_T] = complex_zero
+    B[i_T] = complex_zero
+    for t in range(i_T - 1, -1, -1):
+        if i_FuncNum == 1:
+            A[t] = A[t + 1] + (complex_phi + complex_one) * d_r + B[t + 1] * d_omega \
+                   - 0.5 * cmath.log(1.0 - 2.0 * d_alpha * B[t + 1])
+            B[t] = - 0.5 * (complex_phi+complex_one)+ d_beta * B[t + 1] \
+                   + (0.5 * (complex_phi+complex_one) ** 2-2*d_alpha*(d_gamma_star)*B[t+1]*(complex_phi+complex_one)\
+                      +d_alpha*(d_gamma_star)**2*B[t+1] )/ (1.0 - 2.0 * d_alpha * B[t + 1])
+        else:
+            A[t] = A[t + 1] + (complex_phi) * d_r + B[t + 1] * d_omega \
+                   - 0.5 * cmath.log(1.0 - 2.0 * d_alpha * B[t + 1])
+            B[t] = - 0.5 * complex_phi + d_beta * B[t + 1] \
+                   + (0.5 * (complex_phi) **2 - 2*d_alpha*(d_gamma_star)*B[t+1]*complex_phi+d_alpha*(d_gamma_star)**2*B[t+1] )\
+                   / (1.0 - 2.0 * d_alpha * B[t + 1])
+    if i_FuncNum == 1:
+        z = (d_K ** (-complex_phi)) * (d_S ** (complex_phi + complex_one)) \
+            * cmath.exp(A[0] + B[0] * d_V) / complex_phi
+        return z.real
+    else:
+        z = (d_K ** (-complex_phi)) * (d_S ** (complex_phi)) * cmath.exp(A[0] + B[0] * d_V) / complex_phi
+        return z.real
+    
+# Returns the Heston and Nandi option price under Q parameters
+def HNC_Q(alpha, beta, gamma_star, omega, V, S, K, r, T, PutCall):
+    const_pi = 4.0 * math.atan(1.0)
+    High = 1000
+    Increment = 0.05
+    NumPoints = int(High / Increment)
+    X, Y1, Y2 = [], [], []
+    i = complex(0.0, 1.0)
+    phi = complex(0.0, 0.0)
+    for j in range(0, NumPoints):
+        if j == 0:
+            X.append(0.0000001)
+        else:
+            X.append(j * Increment)
+        phi = X[j] * i
+        Y1.append(HNC_f_Q(phi, alpha, beta, gamma_star, omega, V, S, K, r, T, 1))
+        Y2.append(HNC_f_Q(phi, alpha, beta, gamma_star, omega, V, S, K, r, T, 2))
+
+    int1 = trapz(X, Y1)
+    int2 = trapz(X, Y2)
+    P1 = 0.5 + math.exp(-r * T) * int1 / S / const_pi
+    P2 = 0.5 + int2 / const_pi
+    if P1 < 0:
+        P1 = 0
+    if P1 > 1:
+        P1 = 1
+    if P2 < 0:
+        P2 = 0
+    if P2 > 1:
+        P2 = 1
+
+    Call = S / 2 + math.exp(-r * T) * int1 / const_pi - K * math.exp(-r * T) * (0.5 + int2 / const_pi)
+    Put = Call + K * math.exp(-r * T) - S
+    if PutCall == 1:
+        return Call
+    else:
+        return Put
+    return 0

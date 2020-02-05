@@ -12,15 +12,14 @@ function OptionPrice= HestonNandi(S_0,X,Sig_,T,r,w,a,b,g,lam)
 % Author: Ali Boloorforoosh
 % email:  a_bol@jmsb.concordia.ca
 % Date:   Nov. 1,08
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-                %%%%% sample inputs %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%% sample inputs %%%%%
     % S_0=100;                    stock price at time t
     % X=100;                      strike prices
     % Sig_=.04/252;               unconditional variances per day
     % T=30;                       option maturity
     % r=.05/365;                  daily risk free rate
-    OptionPriceFun=@(S_0,r,T,X) .5*S_0+(exp(-r*T)/pi)*integral(@Integrand1,eps,100)-X*exp(-r*T)*(.5+(1/pi)*integral(@Integrand2,eps,100));
+    OptionPriceFun=@(S_0,r,T,X) .5*S_0+(exp(-r*T)/pi)*integral(@Integrand1,eps,1000)-X*exp(-r*T)*(.5+(1/pi)*integral(@Integrand2,eps,1000));
     p=gcp();
     F = parfeval(p,OptionPriceFun,1,S_0,r,T,X);
     [~,OptionPrice] =  fetchNext(F,0.5);
