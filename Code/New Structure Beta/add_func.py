@@ -1,9 +1,13 @@
 ### additional functions for main file
 import numpy as np
 from tensorflow.keras import backend as K
-from config import Nparameters,diff,bound_sum,ub,lb,Ntest,Nstrikes,strikes,Nmaturities,maturities
+from config import Nparameters,r,diff,bound_sum,ub,lb,Ntest,Nstrikes,strikes,Nmaturities,maturities
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+from py_vollib.black_scholes.implied_volatility import implied_volatility as bsimpvola
+import os as os
+from multiprocessing import Pool
+
 #import matplotlib.lines as mlines
 #import matplotlib.transforms as mtransforms
 #from matplotlib.ticker import LinearLocator, FormatStrFormatter
@@ -177,7 +181,7 @@ def HNC_f_Q(complex_phi, d_alpha, d_beta, d_gamma_star, d_omega, d_V, d_S, d_K, 
     B = [x for x in range(i_T + 1)]
     complex_zero = complex(0.0, 0.0)
     complex_one = complex(1.0, 0.0)
-    complex_i = complex(0.0, 1.0)
+    #complex_i = complex(0.0, 1.0)
     A[i_T] = complex_zero
     B[i_T] = complex_zero
     for t in range(i_T - 1, -1, -1):
@@ -221,21 +225,32 @@ def HNC_Q(alpha, beta, gamma_star, omega, V, S, K, r, T, PutCall):
 
     int1 = trapz(X, Y1)
     int2 = trapz(X, Y2)
-    P1 = 0.5 + math.exp(-r * T) * int1 / S / const_pi
-    P2 = 0.5 + int2 / const_pi
-    if P1 < 0:
-        P1 = 0
-    if P1 > 1:
-        P1 = 1
-    if P2 < 0:
-        P2 = 0
-    if P2 > 1:
-        P2 = 1
-
     Call = S / 2 + math.exp(-r * T) * int1 / const_pi - K * math.exp(-r * T) * (0.5 + int2 / const_pi)
     Put = Call + K * math.exp(-r * T) - S
     if PutCall == 1:
         return Call
     else:
         return Put
-    return 0
+    return 
+
+def opti_fun_data(prediction):
+    def opti_fun(omega,alpha,beta,gamma_star,h0):
+        def error_fun(n):
+            err = 0
+            i=0
+            for k in strikes:
+                j=0
+                for T in maturities:
+                    err += ((prediction(n,i,j)-bsimpvola(HNC_Q(alpha, beta, gamma_star, omega, h0, 1, k, r, T, 1),1,k,T,r,'c'))\
+                                    /prediction(n,i,j))**2
+                    j+=1
+                i+=1
+            return err/(Ntest*Nmaturities*Nstrikes)
+        try:
+            pool = Pool(os.cpu_count()) # on 8 processors
+            error = np.sum(pool.map(error_fun, range(Ntest)))
+        finally: # To make sure processes are closed in the end, even if errors happen
+            pool.close()
+            pool.join()
+        return error
+    return opti_fun
