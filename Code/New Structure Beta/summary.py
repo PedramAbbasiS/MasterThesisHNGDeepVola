@@ -30,6 +30,7 @@ from config import xx,yy,ub,lb,diff,bound_sum, X_train,X_test,X_val,y_train,y_te
 
 # import custom functions #scaling tools
 from add_func import ytransform, yinversetransform,myscale, myinverse
+
 #custom errors
 from add_func import root_mean_squared_error,root_relative_mean_squared_error,mse_constraint,rmse_constraint
 #else
@@ -45,8 +46,10 @@ def autoencoder(nn1,nn2):
         forecast = nn1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
         return forecast
     return autoencoder_predict
-# In[CNN as Encoder / Pricing Kernel]:
 
+
+
+# In[CNN as Encoder / Pricing Kernel]:
 # reshaping train/test sets for structure purposes
 
 [y_train_trafo, y_val_trafo, y_test_trafo]=ytransform(y_train, y_val, y_test)
