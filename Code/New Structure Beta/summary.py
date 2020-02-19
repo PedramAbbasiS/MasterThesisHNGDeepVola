@@ -37,6 +37,14 @@ from add_func import constraint_violation,pricing_plotter
 
 tf.compat.v1.keras.backend.set_floatx('float64')  
 
+
+def autoencoder(nn1,nn2):
+    def autoencoder_predict(y_values):
+        prediction = nn2.predict(y_values)
+        prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
+        forecast = nn1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
+        return forecast
+    return autoencoder_predict
 # In[CNN as Encoder / Pricing Kernel]:
 
 # reshaping train/test sets for structure purposes
@@ -87,94 +95,6 @@ NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_tr
 S0=1.
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
 prediction   = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-"""
-err_rel_mat  = np.zeros(prediction.shape)
-err_mat      = np.zeros(prediction.shape)
-for i in range(Ntest):
-    err_rel_mat[i,:,:] =  np.abs((y_test_re[i,:,:]-prediction[i,:,:])/y_test_re[i,:,:])
-    err_mat[i,:,:] =  np.square((y_test_re[i,:,:]-prediction[i,:,:]))
-idx = np.argsort(np.max(err_rel_mat,axis=tuple([1,2])), axis=None)
-
-#bad_idx = idx[:-200]
-bad_idx = idx
-#from matplotlib.colors import LogNorm
-plt.figure(figsize=(14,4))
-ax=plt.subplot(2,3,1)
-err1 = 100*np.mean(err_rel_mat[bad_idx,:,:],axis=0)
-plt.title("Average relative error",fontsize=15,y=1.04)
-plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.colorbar(format=mtick.PercentFormatter())
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,2)
-err2 = 100*np.std(err_rel_mat[bad_idx,:,:],axis = 0)
-plt.title("Std relative error",fontsize=15,y=1.04)
-plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,3)
-err3 = 100*np.max(err_rel_mat[bad_idx,:,:],axis = 0)
-plt.title("Maximum relative error",fontsize=15,y=1.04)
-plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,4)
-err1 = np.sqrt(np.mean(err_mat[bad_idx,:,:],axis=0))
-plt.title("RMSE",fontsize=15,y=1.04)
-plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,5)
-err2 = np.std(err_mat[bad_idx,:,:],axis = 0)
-plt.title("Std MSE",fontsize=15,y=1.04)
-plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,6)
-err3 = np.max(err_mat[bad_idx,:,:],axis = 0)
-plt.title("Maximum MSE",fontsize=15,y=1.04)
-plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.tight_layout()
-plt.show()
-
-"""
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 
 
@@ -380,6 +300,7 @@ plt.legend()
 # We test how the two previously trained NN work together. First, HNG-Vola surfaces are used to predict the underlying parameters with NN2. Those predictions are fed into NN1 to get Vola-Surface again. The results are shown below.
 
 
+prediction = NN2.predict(y_test_trafo2)
 
 prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
 forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
