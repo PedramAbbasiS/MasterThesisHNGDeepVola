@@ -1,3 +1,8 @@
+import foo
+method_to_call = getattr(foo, 'bar')
+result = method_to_call()
+
+
 %% Initialisation
 clearvars; clc;close all;
 load('/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/generaldata2015.mat')
