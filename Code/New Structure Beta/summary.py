@@ -11,6 +11,7 @@ from tensorflow.compat.v1.keras.layers import InputLayer,Dense,Flatten, Conv2D, 
 from tensorflow.compat.v1.keras import backend as K
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+from scipy.optimize import minimize,NonlinearConstraint
 #import matplotlib.lines as mlines
 #import matplotlib.transforms as mtransforms
 #from matplotlib.ticker import LinearLocator, FormatStrFormatter
@@ -27,7 +28,8 @@ import random
 # import data set
 from config import data,Nparameters,maturities,strikes,Nstrikes,Nmaturities,Ntest,Ntrain,Nval
 from config import xx,yy,ub,lb,diff,bound_sum, X_train,X_test,X_val,y_train,y_test,y_val
-
+from config import y_train_trafo,y_val_trafo,y_test_trafo,X_train_trafo,X_val_trafo,X_test_trafo
+from config import y_train_trafo2,y_val_trafo2,y_test_trafo2,X_train_trafo2,X_val_trafo2,X_test_trafo2
 # import custom functions #scaling tools
 from add_func import ytransform, yinversetransform,myscale, myinverse
 
@@ -38,6 +40,13 @@ from add_func import constraint_violation,pricing_plotter
 
 tf.compat.v1.keras.backend.set_floatx('float64')  
 
+<<<<<<< Updated upstream
+=======
+from add_func import ownTimer
+t = ownTimer()
+
+# In[CNN as Encoder / Pricing Kernel]:
+>>>>>>> Stashed changes
 
 def autoencoder(nn1,nn2):
     def autoencoder_predict(y_values):
@@ -51,20 +60,6 @@ def autoencoder(nn1,nn2):
 
 # In[CNN as Encoder / Pricing Kernel]:
 # reshaping train/test sets for structure purposes
-
-[y_train_trafo, y_val_trafo, y_test_trafo]=ytransform(y_train, y_val, y_test)
-y_train_trafo = np.asarray([y_train[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntrain)])
-y_val_trafo =  np.asarray([y_val[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Nval)])
-y_test_trafo =  np.asarray([y_test[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntest)])
-
-X_train_trafo = np.array([myscale(x) for x in X_train])
-X_val_trafo   = np.array([myscale(x) for x in X_val])
-X_test_trafo  = np.array([myscale(x) for x in X_test])
-X_train_trafo = np.array([myscale(x) for x in X_train])
-X_val_trafo   = np.array([myscale(x) for x in X_val])
-X_test_trafo  = X_test_trafo.reshape((Ntest,5,1,1))
-X_train_trafo = X_train_trafo.reshape((Ntrain,5,1,1))
-X_val_trafo   = X_val_trafo.reshape((Nval,5,1,1))
 
 # Training of CNN
 NN1 = Sequential() 
@@ -98,34 +93,19 @@ NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_tr
 S0=1.
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
 prediction   = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+<<<<<<< Updated upstream
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
+=======
+#plots
+err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
+
+
+>>>>>>> Stashed changes
 
 
 # In[CNN as  Decoder/Inverse Mapping / Calibration]
 
 # reshaping for cnn purposes
-y_train_trafo2 = y_train_trafo.reshape((Ntrain,Nmaturities,Nstrikes,1))
-y_test_trafo2 = y_test_trafo.reshape((Ntest,Nmaturities,Nstrikes,1))
-y_val_trafo2 = y_val_trafo.reshape((Nval,Nmaturities,Nstrikes,1))
-X_val_trafo2 = X_val_trafo.reshape((Nval,Nparameters))
-X_train_trafo2 = X_train_trafo.reshape((Ntrain,Nparameters))
-X_test_trafo2 = X_test_trafo.reshape((Ntest,Nparameters))
-""" old structure with multi-purpose network 
-input1 = Input(shape = (7,9,1))
-x1 = Conv2D(64, kernel_size=3, activation='relu')(input1)
-x2 = Conv2D(64, kernel_size=3, activation='relu')(x1)
-x3 = Flatten()(x2)
-x4 = Dense(50, activation = 'elu')(x3)
-seq1 = Dense(1, activation = 'linear',use_bias=True)(x4)
-seq2 = Dense(1, activation = 'linear',use_bias=True)(x4)
-seq3 = Dense(1, activation = 'linear',use_bias=True)(x4)
-seq4 = Dense(1, activation = 'linear',use_bias=True)(x4)
-seq5 = Dense(1, activation = 'linear',use_bias=True)(x4)
-out1 = keras.layers.merge.concatenate([seq1, seq2, seq3,seq4,seq5], axis=-1)
-NN2 = Model(inputs=input1, outputs=out1)
-"""
-
-
 NN2 = Sequential() 
 NN2.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
 NN2.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
@@ -149,156 +129,147 @@ NN2.summary()
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 NN2.compile(loss =mse_constraint(0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
 history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
-    epochs=30, verbose = True, shuffle=1)
+    epochs=1, verbose = True, shuffle=1)
 
 
 # ### 3.1 Results
 # Take care these results are on scaled parameter values and not rescaled yet!
 
+from add_func import calibration_plotter
+prediction_calibration = NN2.predict(y_test_trafo2)
+prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
 
-prediction = NN2.predict(y_test_trafo2)
-
-prediction_invtrafo= np.array([myinverse(x) for x in prediction])
-
-prediction = NN2.predict(y_test_trafo2)
-prediction_std = np.std(prediction,axis=0)
-error = np.zeros((Ntest,Nparameters))
-for i in range(Ntest):
-    error[i,:] =  np.abs((X_test_trafo2[i,:]-prediction[i,:])/X_test_trafo2[i,:])
-err1 = np.mean(error,axis = 0)
-err2 = np.median(error,axis = 0)
-err_std = np.std(error,axis = 0)
-idx = np.argsort(error[:,0], axis=None)
-good_idx = idx[:-100]
+#plots
+error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
 
 
-_,_,c =constraint_violation(prediction_invtrafo)
-_,_,c2 =constraint_violation(X_test)
 
 
-testing_violation = c>=1
-testing_violation2 = (c<1)
-vio_error = error[testing_violation,:]
-vio_error2 = error[testing_violation2,:]
+
+### Optimization
+# work in progress
+from add_func import opti_fun_data
+
+dist = np.zeros((1,Ntrain))#np.zeros((Ntest,Ntrain))
+min_dist = np.zeros((Ntest,1))
+predictor_dist = np.zeros((Ntest,Nparameters))
+for i in range(1):#range(Ntest):
+    for j in range(Ntrain):
+        dist[i,j]  = np.mean(((y_test[i,:]-y_train[j,:])/y_test[i,:])**2)
+    min_dist[i] = np.argmin(dist[i,:])
+    predictor_dist[i,:] = X_train[int(min_dist[i][0]),:]
+    
+    
 
 
-plt.figure(figsize=(14,4))
-ax=plt.subplot(1,3,1)
-plt.boxplot(error)
-plt.yscale("log")
-plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
-plt.ylabel("Errors")
-ax=plt.subplot(1,3,2)
-plt.boxplot(vio_error)
-plt.yscale("log")
-plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
-plt.ylabel("Errors parameter violation")
-ax=plt.subplot(1,3,3)
-plt.boxplot(vio_error2)
-plt.yscale("log")
-plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
-plt.ylabel("Errors no parameter violation")
-plt.show()
-
-print("violation error mean in %:",100*np.mean(vio_error,axis=0))
-print("no violation error mean in %:",100*np.mean(vio_error2,axis=0))
-print("violation error median in %:",100*np.median(vio_error,axis=0))
-print("no violation error median in %:",100*np.median(vio_error2,axis=0))
-print("error mean in %:",100*err1)
-print("error median in %:",100*err2)
-
-fig = plt.figure()
-plt.scatter(c2,c)
-plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
-plt.xlabel("True Constraint")
-plt.ylabel("Forecasted Constraint")
 
 
-plt.figure(figsize=(14,4))
-ax=plt.subplot(1,5,1)
-plt.yscale("log")
-plt.scatter(c2[testing_violation2],vio_error2[:,0],c="r",s=1,marker="x",label="alpha no con")
-plt.scatter(c2[testing_violation],vio_error[:,0],c="b",s=1,marker="x",label="alpha con")
-plt.xlabel("True Constraint")
-plt.ylabel("Relative Deviation")
-plt.legend()
-ax=plt.subplot(1,5,2)
-plt.yscale("log")
-plt.scatter(c2[testing_violation2],vio_error2[:,1],c="r",s=1,marker="x",label="beta no con")
-plt.scatter(c2[testing_violation],vio_error[:,1],c="b",s=1,marker="x",label="beta con")
-plt.xlabel("True Constraint")
-plt.ylabel("Relative Deviation")
-plt.legend()
-ax=plt.subplot(1,5,3)
-plt.yscale("log")
-plt.scatter(c2[testing_violation2],vio_error2[:,2],c="r",s=1,marker="x",label="gamma no con")
-plt.scatter(c2[testing_violation],vio_error[:,2],c="b",s=1,marker="x",label="gamma con")
-plt.xlabel("True Constraint")
-plt.ylabel("Relative Deviation")
-plt.legend()
-ax=plt.subplot(1,5,4)
-plt.yscale("log")
-plt.scatter(c2[testing_violation2],vio_error2[:,3],c="r",s=1,marker="x",label="omega no con")
-plt.scatter(c2[testing_violation],vio_error[:,3],c="b",s=1,marker="x",label="omega con")
-plt.xlabel("True Constraint")
-plt.ylabel("Relative Deviation")
-plt.legend()
-ax=plt.subplot(1,5,5)
-plt.yscale("log")
-plt.scatter(c2[testing_violation2],vio_error2[:,4],c="r",s=1,marker="x",label="sigma0 no con")
-plt.scatter(c2[testing_violation],vio_error[:,4],c="b",s=1,marker="x",label="sigma0 con")
-plt.xlabel("True Constraint")
-plt.ylabel("Relative Deviation")
-plt.legend()
-fig = plt.figure()
-plt.scatter(c2,c)
-plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
-plt.xlabel("True Constraint")
-plt.ylabel("Forecasted Constraint")
-
-plt.figure(figsize=(14,4))
-ax=plt.subplot(1,5,1)
-plt.yscale("log")
-plt.xscale("log")
-plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,0],c="r",s=1,marker="x",label="alpha no con")
-plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,0],c="b",s=1,marker="x",label="alpha con")
-plt.xlabel("constraint deviation")
-plt.ylabel("Relative Deviation")
-plt.legend()
-ax=plt.subplot(1,5,2)
-plt.yscale("log")
-plt.xscale("log")
-plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,1],c="r",s=1,marker="x",label="beta no con")
-plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,1],c="b",s=1,marker="x",label="beta con")
-plt.xlabel("constraint deviation")
-plt.ylabel("Relative Deviation")
-plt.legend()
-ax=plt.subplot(1,5,3)
-plt.yscale("log")
-plt.xscale("log")
-plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,2],c="r",s=1,marker="x",label="gamma no con")
-plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,2],c="b",s=1,marker="x",label="gamma con")
-plt.xlabel("constraint deviation")
-plt.ylabel("Relative Deviation")
-plt.legend()
-ax=plt.subplot(1,5,4)
-plt.yscale("log")
-plt.xscale("log")
-plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,3],c="r",s=1,marker="x",label="omega no con")
-plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,3],c="b",s=1,marker="x",label="omega con")
-plt.xlabel("constraint deviation")
-plt.ylabel("Relative Deviation")
-plt.legend()
-ax=plt.subplot(1,5,5)
-plt.yscale("log")
-plt.xscale("log")
-plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,4],c="r",s=1,marker="x",label="sigma0 no con")
-plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,4],c="b",s=1,marker="x",label="sigma0 con")
-plt.xlabel("constraint deviation")
-plt.ylabel("Relative Deviation")
-plt.legend()
+import functools as functools
+from add_func import bsimpvola,HNC_Q
+from config import r
+"""
+def optimization_fun (prediction,x):
+    alpha = x[0]
+    beta = x[1]
+    gamma_star = x[2]
+    omega = x[3] 
+    h0 = x[4]
+    err = 0
+    for i in range(Nstrikes):
+        st = strikes[i]
+        for t in range(Nmaturities):
+            mat = maturities[t]
+            vola = prediction[t,i]
+            err += ((vola-bsimpvola(HNC_Q(alpha, beta, gamma_star, omega, h0, 1, st, r, mat, 1),1,st,mat,r,'c'))/vola)**2
+    return err/(Nmaturities*Nstrikes)
+"""
+from py_vollib.black_scholes.implied_volatility import black_scholes
+def optimization_fun_prices (prediction,x):
+    alpha = x[0]
+    beta = x[1]
+    gamma_star = x[2]
+    omega = x[3] 
+    h0 = x[4]
+    err = 0
+    for i in range(Nstrikes):
+        st = strikes[i]
+        for t in range(Nmaturities):
+            mat = maturities[t]
+            vola = prediction[t,i]
+            err += ((black_scholes('c',1,st,mat,r,vola)-HNC_Q(alpha, beta, gamma_star, omega, h0, 1, st, r, mat, 1))\
+                    /black_scholes('c',1,st,mat,r,vola))**2
+    return err/(Nmaturities*Nstrikes)               
 
 
+from multiprocessing import Pool
+import os
+
+def testfun(prediction,st,t,x,i):
+    alpha = x[0]
+    beta = x[1]
+    gamma_star = x[2]
+    omega = x[3] 
+    h0 = x[4]
+    mat = maturities[t]
+    vola = prediction[t,i]
+    return ((black_scholes('c',1,st,mat,r,vola)-HNC_Q(alpha, beta, gamma_star, omega, h0, 1, st, r, mat, 1))\
+                    /black_scholes('c',1,st,mat,r,vola))**2
+
+def optimization_fun_pricesparallel (prediction,x):
+    err = 0
+    for i in range(1):#range(Nstrikes):
+        st = strikes[i]
+        try:
+            pool = Pool(np.max([os.cpu_count()-1,1]))
+            err += np.sum(pool.map(functools.partial(testfun, prediction, st, t, x), range(Nmaturities)))
+        finally: # To make sure processes are closed in the end, even if errors happen
+            pool.close()
+            pool.join() 
+    return err/(Nmaturities*Nstrikes)
+
+
+x0 = predictor_dist[0,:]
+tmp = yinversetransform(prediction[0,:,:])
+    
+t.start()
+optimization_fun_pricesparallel(tmp,x0)
+t.stop()
+
+
+
+bounds = ([0, 10], [0, 1-(1e-6)],[-1000,1000],[np.finfo(float).eps,10],[0, 10])
+ineq_cons = {'type': 'ineq','fun' : lambda x: np.array([1 - x[0]*x[1]**2-x[1]])}
+res2 =[]
+for n in range(1):#range(Ntest):
+    x0 = predictor_dist[n,:]
+    tmp = yinversetransform(prediction[n,:,:])
+    res2.append(minimize(functools.partial(optimization_fun_prices,tmp), x0, method='SLSQP', constraints=[ineq_cons],options={'disp': 1}, bounds=bounds))
+
+x0 = predictor_dist[0,:]
+tmp = yinversetransform(prediction[0,:,:])
+    
+t.start()
+optimization_fun_prices(tmp,x0)
+t.stop()
+
+"""def cons_hng(x):
+    return x[0]**2*x[2]+x[1]
+nonlinear_constraint = NonlinearConstraint(cons_hng, -np.inf, 1)
+bounds = ([0, 10], [0, 1-(1e-6)],[-1000,1000],[np.finfo(float).eps,10],[0, 10])
+res = minimize(opti_fun_data(prediction), x0, method='trust-constr',
+               constraints=[nonlinear_constraint],options={'verbose': 1}, bounds=bounds)
+"""
+
+"""
+#slsqp
+bounds = ([0, 10], [0, 1-(1e-6)],[-1000,1000],[np.finfo(float).eps,10],[0, 10])
+ineq_cons = {'type': 'ineq','fun' : lambda x: np.array([1 - x[0]*x[1]**2-x[1]])}
+res2 =[]
+for n in range(1):#range(Ntest):
+    x0 = predictor_dist[n,:]
+    res2.append(minimize(opti_fun_data(prediction[n,:,:]), x0, method='SLSQP', constraints=[ineq_cons],\
+                options={'ftol': 1e-9, 'disp': True},bounds=bounds))
+"""
 # In[Testing the performace of the AutoEncoder/Decoder Combination]
 # We test how the two previously trained NN work together. First, HNG-Vola surfaces are used to predict the underlying parameters with NN2. Those predictions are fed into NN1 to get Vola-Surface again. The results are shown below.
 
