@@ -5,6 +5,7 @@ from config import Nparameters,r,diff,bound_sum,ub,lb,Ntest,Nstrikes,strikes,Nma
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from py_vollib.black_scholes.implied_volatility import implied_volatility as bsimpvola
+from py_vollib.black_scholes.implied_volatility import black_scholes
 import os as os
 from multiprocessing import Pool
 
@@ -72,6 +73,8 @@ def constraint_violation(x):
     return np.sum(x[:,0]*x[:,2]**2+x[:,1]>=1)/x.shape[0],x[:,0]*x[:,2]**2+x[:,1]>=1,x[:,0]*x[:,2]**2+x[:,1]
 
 ### error plot
+
+# error pricer
 def pricing_plotter(prediction,y_test):     
     err_rel_mat  = np.zeros(prediction.shape)
     err_mat      = np.zeros(prediction.shape)
@@ -160,7 +163,145 @@ def pricing_plotter(prediction,y_test):
     plt.show()
     return err_rel_mat,err_mat,idx,bad_idx
 
-
+#errror calibration
+def calibration_plotter(prediction,X_test_trafo2,X_test):
+    prediction_invtrafo= np.array([myinverse(x) for x in prediction])
+    prediction_std = np.std(prediction,axis=0)
+    error = np.zeros((Ntest,Nparameters))
+    for i in range(Ntest):
+        error[i,:] =  np.abs((X_test_trafo2[i,:]-prediction[i,:])/X_test_trafo2[i,:])
+    err1 = np.mean(error,axis = 0)
+    err2 = np.median(error,axis = 0)
+    err_std = np.std(error,axis = 0)
+    idx = np.argsort(error[:,0], axis=None)
+    good_idx = idx[:-100]
+        
+    _,_,c =constraint_violation(prediction_invtrafo)
+    _,_,c2 =constraint_violation(X_test)
+    
+    
+    testing_violation = c>=1
+    testing_violation2 = (c<1)
+    vio_error = error[testing_violation,:]
+    vio_error2 = error[testing_violation2,:]
+    
+    
+    plt.figure(figsize=(14,4))
+    ax=plt.subplot(1,3,1)
+    plt.boxplot(error)
+    plt.yscale("log")
+    plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
+    plt.ylabel("Errors")
+    ax=plt.subplot(1,3,2)
+    plt.boxplot(vio_error)
+    plt.yscale("log")
+    plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
+    plt.ylabel("Errors parameter violation")
+    ax=plt.subplot(1,3,3)
+    plt.boxplot(vio_error2)
+    plt.yscale("log")
+    plt.xticks([1, 2, 3,4,5], ['w','a','b','g*','h0'])
+    plt.ylabel("Errors no parameter violation")
+    plt.show()
+    
+    print("violation error mean in %:",100*np.mean(vio_error,axis=0))
+    print("no violation error mean in %:",100*np.mean(vio_error2,axis=0))
+    print("violation error median in %:",100*np.median(vio_error,axis=0))
+    print("no violation error median in %:",100*np.median(vio_error2,axis=0))
+    print("error mean in %:",100*err1)
+    print("error median in %:",100*err2)
+    
+    fig = plt.figure()
+    plt.scatter(c2,c)
+    plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
+    plt.xlabel("True Constraint")
+    plt.ylabel("Forecasted Constraint")
+    
+    
+    plt.figure(figsize=(14,4))
+    ax=plt.subplot(1,5,1)
+    plt.yscale("log")
+    plt.scatter(c2[testing_violation2],vio_error2[:,0],c="r",s=1,marker="x",label="alpha no con")
+    plt.scatter(c2[testing_violation],vio_error[:,0],c="b",s=1,marker="x",label="alpha con")
+    plt.xlabel("True Constraint")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    ax=plt.subplot(1,5,2)
+    plt.yscale("log")
+    plt.scatter(c2[testing_violation2],vio_error2[:,1],c="r",s=1,marker="x",label="beta no con")
+    plt.scatter(c2[testing_violation],vio_error[:,1],c="b",s=1,marker="x",label="beta con")
+    plt.xlabel("True Constraint")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    ax=plt.subplot(1,5,3)
+    plt.yscale("log")
+    plt.scatter(c2[testing_violation2],vio_error2[:,2],c="r",s=1,marker="x",label="gamma no con")
+    plt.scatter(c2[testing_violation],vio_error[:,2],c="b",s=1,marker="x",label="gamma con")
+    plt.xlabel("True Constraint")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    ax=plt.subplot(1,5,4)
+    plt.yscale("log")
+    plt.scatter(c2[testing_violation2],vio_error2[:,3],c="r",s=1,marker="x",label="omega no con")
+    plt.scatter(c2[testing_violation],vio_error[:,3],c="b",s=1,marker="x",label="omega con")
+    plt.xlabel("True Constraint")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    ax=plt.subplot(1,5,5)
+    plt.yscale("log")
+    plt.scatter(c2[testing_violation2],vio_error2[:,4],c="r",s=1,marker="x",label="sigma0 no con")
+    plt.scatter(c2[testing_violation],vio_error[:,4],c="b",s=1,marker="x",label="sigma0 con")
+    plt.xlabel("True Constraint")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    fig = plt.figure()
+    plt.scatter(c2,c)
+    plt.plot(np.arange(0, np.max(c),0.5),np.arange(0, np.max(c),0.5),'-r')
+    plt.xlabel("True Constraint")
+    plt.ylabel("Forecasted Constraint")
+    
+    plt.figure(figsize=(14,4))
+    ax=plt.subplot(1,5,1)
+    plt.yscale("log")
+    plt.xscale("log")
+    plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,0],c="r",s=1,marker="x",label="alpha no con")
+    plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,0],c="b",s=1,marker="x",label="alpha con")
+    plt.xlabel("constraint deviation")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    ax=plt.subplot(1,5,2)
+    plt.yscale("log")
+    plt.xscale("log")
+    plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,1],c="r",s=1,marker="x",label="beta no con")
+    plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,1],c="b",s=1,marker="x",label="beta con")
+    plt.xlabel("constraint deviation")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    ax=plt.subplot(1,5,3)
+    plt.yscale("log")
+    plt.xscale("log")
+    plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,2],c="r",s=1,marker="x",label="gamma no con")
+    plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,2],c="b",s=1,marker="x",label="gamma con")
+    plt.xlabel("constraint deviation")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    ax=plt.subplot(1,5,4)
+    plt.yscale("log")
+    plt.xscale("log")
+    plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,3],c="r",s=1,marker="x",label="omega no con")
+    plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,3],c="b",s=1,marker="x",label="omega con")
+    plt.xlabel("constraint deviation")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    ax=plt.subplot(1,5,5)
+    plt.yscale("log")
+    plt.xscale("log")
+    plt.scatter(abs((c2[testing_violation2]-c[testing_violation2])/c2[testing_violation2]),vio_error2[:,4],c="r",s=1,marker="x",label="sigma0 no con")
+    plt.scatter(abs((c2[testing_violation]-c[testing_violation])/c2[testing_violation]),vio_error[:,4],c="b",s=1,marker="x",label="sigma0 con")
+    plt.xlabel("constraint deviation")
+    plt.ylabel("Relative Deviation")
+    plt.legend()
+    return error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2
 ### Heston Nandi Pricer
 """
 Heston Nandi GARCH Option Pricing Model (2000) 
@@ -208,15 +349,15 @@ def HNC_f_Q(complex_phi, d_alpha, d_beta, d_gamma_star, d_omega, d_V, d_S, d_K, 
 # Returns the Heston and Nandi option price under Q parameters
 def HNC_Q(alpha, beta, gamma_star, omega, V, S, K, r, T, PutCall):
     const_pi = 4.0 * math.atan(1.0)
-    High = 1000
-    Increment = 0.05
+    High = 100#1000
+    Increment = 0.25#0.05
     NumPoints = int(High / Increment)
     X, Y1, Y2 = [], [], []
     i = complex(0.0, 1.0)
     phi = complex(0.0, 0.0)
     for j in range(0, NumPoints):
         if j == 0:
-            X.append(0.0000001)
+            X.append(np.finfo(float).eps)
         else:
             X.append(j * Increment)
         phi = X[j] * i
@@ -233,24 +374,74 @@ def HNC_Q(alpha, beta, gamma_star, omega, V, S, K, r, T, PutCall):
         return Put
     return 
 
+def error_fun_opti(x,prediction,i):
+    alpha = x[0]
+    beta = x[1]
+    gamma_star = x[2]
+    omega = x[3] 
+    h0 = x[4]
+    err = 0
+    for t in range(Nmaturities):
+        err += ((prediction[t,i]-bsimpvola(HNC_Q(alpha, beta, gamma_star, omega, h0, 1, strikes[i], r, maturities[t], 1),1,strikes[i],maturities[t],r,'c'))\
+                /prediction[t,i])**2
+    return err/(Nmaturities)
+
+
+def error_fun(x, prediction, i):
+    return error_fun_opti(x, prediction, i)
+
+import functools as functools
+
 def opti_fun_data(prediction):
-    def opti_fun(omega,alpha,beta,gamma_star,h0):
-        def error_fun(n):
-            err = 0
-            i=0
-            for k in strikes:
-                j=0
-                for T in maturities:
-                    err += ((prediction(n,i,j)-bsimpvola(HNC_Q(alpha, beta, gamma_star, omega, h0, 1, k, r, T, 1),1,k,T,r,'c'))\
-                                    /prediction(n,i,j))**2
-                    j+=1
-                i+=1
-            return err/(Ntest*Nmaturities*Nstrikes)
+    def opti_fun(x):
         try:
-            pool = Pool(os.cpu_count()) # on 8 processors
-            error = np.sum(pool.map(error_fun, range(Ntest)))
+            pool = Pool(np.max([os.cpu_count()-1,1]))
+            error = np.mean(pool.map(functools.partial(error_fun, x, prediction), range(Nstrikes)))
         finally: # To make sure processes are closed in the end, even if errors happen
             pool.close()
             pool.join()
         return error
     return opti_fun
+
+import time
+### timer class
+class ownTimerError(Exception):
+
+    """A custom exception used to report errors in use of Timer class"""
+
+
+class ownTimer:
+
+    def __init__(self):
+
+        self._start_time = None
+
+
+    def start(self):
+
+        """Start a new timer"""
+
+        if self._start_time is not None:
+
+            raise ownTimerError(f"Timer is running. Use .stop() to stop it")
+
+
+        self._start_time = time.perf_counter()
+
+
+    def stop(self):
+
+        """Stop the timer, and report the elapsed time"""
+
+        if self._start_time is None:
+
+            raise ownTimerError(f"Timer is not running. Use .start() to start it")
+
+
+        elapsed_time = time.perf_counter() - self._start_time
+
+        self._start_time = None
+
+        print(f"Elapsed time: {elapsed_time:0.4f} seconds")
+
+
