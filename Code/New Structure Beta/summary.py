@@ -40,13 +40,10 @@ from add_func import constraint_violation,pricing_plotter
 
 tf.compat.v1.keras.backend.set_floatx('float64')  
 
-<<<<<<< Updated upstream
-=======
 from add_func import ownTimer
 t = ownTimer()
 
 # In[CNN as Encoder / Pricing Kernel]:
->>>>>>> Stashed changes
 
 def autoencoder(nn1,nn2):
     def autoencoder_predict(y_values):
@@ -93,14 +90,10 @@ NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_tr
 S0=1.
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
 prediction   = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-<<<<<<< Updated upstream
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
-=======
+
 #plots
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
-
-
->>>>>>> Stashed changes
 
 
 # In[CNN as  Decoder/Inverse Mapping / Calibration]
